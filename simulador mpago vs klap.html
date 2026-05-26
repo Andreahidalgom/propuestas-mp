@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Costos de Pago — Chile</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#fff;--bg2:#f6f5f2;--bg3:#edece8;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#9e9c95;
+  --border:rgba(0,0,0,0.11);--border2:rgba(0,0,0,0.22);
+  --rl:14px;--r:8px;
+  --mp:#185FA5;--mpl:#E6F1FB;--mpd:#0C447C;
+  --pro:#3B6D11;--prol:#EAF3DE;--prod:#27500A;
+  --kl:#854F0B;--kll:#FAEEDA;--kld:#633806;
+  --teal:#0F6E56;--teall:#E1F5EE;--teald:#085041;
+  --red:#A32D2D;--grn:#27500A;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+  --text:#f0ede8;--text2:#b4b2a9;--text3:#888780;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.22);
+  --mp:#85B7EB;--mpl:#0C447C;--mpd:#B5D4F4;
+  --pro:#97C459;--prol:#1e3a08;--prod:#C0DD97;
+  --kl:#EF9F27;--kll:#3d2403;--kld:#FAC775;
+  --teal:#5DCAA5;--teall:#063328;--teald:#9FE1CB;
+  --red:#F09595;--grn:#97C459;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 3rem}
+h1{font-size:22px;font-weight:600;margin-bottom:3px}
+.sub{font-size:13px;color:var(--text2);margin-bottom:1.75rem}
+.sec{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.ig2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem}
+@media(max-width:600px){.ig2{grid-template-columns:1fr}}
+label.lbl{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
+input[type=number]{background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:14px;color:var(--text);width:100%;outline:none}
+input[type=number]:focus{border-color:var(--mp)}
+.mix-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=range]{width:100%;height:4px;accent-color:var(--mp);margin-top:5px;cursor:pointer}
+.vb{font-size:12px;font-weight:600;color:var(--text)}
+.seg-lbl{font-size:11px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.tog-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tb{border:0.5px solid var(--border2);border-radius:6px;padding:6px 14px;font-size:13px;background:var(--bg3);color:var(--text2);cursor:pointer;transition:.15s;line-height:1.5}
+.tb.on{background:var(--mpl);border-color:var(--mp);color:var(--mpd);font-weight:500}
+/* 3-col plan grid */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin-bottom:.9rem}
+@media(max-width:680px){.pg{grid-template-columns:1fr}}
+.pc{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.9rem;gap:6px}
+.pname{font-size:14px;font-weight:600}
+.psub{font-size:11px;color:var(--text2);margin-top:2px}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.b-mp{background:var(--mpl);color:var(--mpd)}
+.b-pro{background:var(--prol);color:var(--prod)}
+.b-kl{background:var(--kll);color:var(--kld)}
+/* cost breakdown table */
+.ct{width:100%;border-collapse:collapse;font-size:12.5px}
+.ct td{padding:5px 3px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.ct tr:last-child td{border-bottom:none}
+.ct .key{color:var(--text2);width:55%}
+.ct .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ct .iva-col{text-align:right;font-size:11px;color:var(--text3);white-space:nowrap}
+.ct .sep{border-top:1px solid var(--border2) !important;padding-top:7px !important}
+.ct .row-sub td{color:var(--text2);font-size:12px}
+.ct .row-iva td{color:var(--text3);font-size:12px}
+.ct .row-tot td{font-size:16px;font-weight:700;padding-top:6px;color:var(--text)}
+.ct .row-net td{font-size:11px;color:var(--text3);padding-top:2px}
+.ct .row-tasa td{font-size:11px;color:var(--text3)}
+.ct .row-diff td{font-size:12px;font-weight:600;padding-top:4px}
+.grn{color:var(--grn) !important}
+.red{color:var(--red) !important}
+/* winner banner */
+.win{background:var(--teall);border:1.5px solid var(--teal);border-radius:var(--rl);padding:1.1rem 1.25rem;margin-bottom:.9rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem}
+.win-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:2px}
+.win-name{font-size:18px;font-weight:700;color:var(--teald)}
+.win-desc{font-size:12px;color:var(--teal);margin-top:3px;line-height:1.5}
+.win-num{font-size:21px;font-weight:700;color:var(--teald)}
+/* recommendation box */
+.rec-box{border-radius:var(--rl);padding:1.25rem;margin-bottom:.9rem;border:0.5px solid var(--border)}
+.rec-box h3{font-size:15px;font-weight:600;margin-bottom:.6rem}
+.rec-body{font-size:13px;color:var(--text2);line-height:1.7}
+.rec-body strong{color:var(--text);font-weight:600}
+.rec-body .hi{display:inline-block;padding:1px 7px;border-radius:4px;font-weight:600;font-size:12px;margin:0 2px}
+.hi-mp{background:var(--mpl);color:var(--mpd)}
+.hi-pro{background:var(--prol);color:var(--prod)}
+.hi-kl{background:var(--kll);color:var(--kld)}
+/* chart */
+.chart-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:.9rem}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+/* ref tables */
+.rt{width:100%;border-collapse:collapse;font-size:12px}
+.rt th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:4px 6px;text-align:left;border-bottom:0.5px solid var(--border2)}
+.rt td{padding:5px 6px;border-bottom:0.5px solid var(--border);color:var(--text2)}
+.rt tr:last-child td{border-bottom:none}
+.rt .hl td{font-weight:600;color:var(--text);background:var(--bg3)}
+.warn{background:var(--kll);border:0.5px solid var(--kl);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--kld);margin-bottom:.9rem}
+.fn{font-size:11px;color:var(--text3);margin-top:1.5rem;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Simulador de costos de pago · Chile 2026</h1>
+<p class="sub">Mercado Pago Estándar · Mercado Pro · Klap — neto + IVA + total mensual con recomendación</p>
+
+<!-- ── INPUTS ── -->
+<p class="sec">Parámetros de tu negocio</p>
+<div class="ig2">
+  <div class="card">
+    <label class="lbl">Ventas mensuales con tarjeta (CLP)</label>
+    <input type="number" id="ventas" value="3000000" step="100000" min="100000" oninput="calc()">
+  </div>
+  <div class="card">
+    <label class="lbl">Ticket promedio por transacción (CLP)</label>
+    <input type="number" id="ticket" value="15000" step="500" min="500" oninput="calc()">
+  </div>
+  <div class="card">
+    <label class="lbl">Valor UF (CLP) · 26 may 2026: <strong>$40.526</strong></label>
+    <input type="number" id="uf" value="40526" step="1" oninput="calc()">
+  </div>
+  <div class="card">
+    <label class="lbl">Mix de tarjetas — al mover un slider los demás se ajustan automáticamente</label>
+    <div class="mix-grid">
+      <div>
+        <div class="seg-lbl">Débito / Prepago <span class="vb" id="lbl-deb">60%</span></div>
+        <input type="range" id="deb" min="0" max="100" value="60" oninput="syncMix('deb')">
+      </div>
+      <div>
+        <div class="seg-lbl">Crédito nacional <span class="vb" id="lbl-cred">30%</span></div>
+        <input type="range" id="cred" min="0" max="100" value="30" oninput="syncMix('cred')">
+      </div>
+      <div>
+        <div class="seg-lbl">Internacional / cuotas <span class="vb" id="lbl-intl">10%</span></div>
+        <input type="range" id="intl" min="0" max="100" value="10" oninput="syncMix('intl')">
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+        <span style="font-size:11px;color:var(--text3)" id="mix-total">Total: 100%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:.9rem">
+  <label class="lbl">Boleta electrónica efectivo · MP Estándar (cobros con tarjeta emiten comprobante gratis)</label>
+  <div class="tog-row">
+    <button class="tb" id="tb-no" onclick="setBoleta('no')">Sin boleta efectivo<br><span style="font-size:11px;font-weight:400">$0/mes</span></button>
+    <button class="tb on" id="tb-si" onclick="setBoleta('si')">Con boleta electrónica<br><span style="font-size:11px;font-weight:400">$11.000 neto + IVA / mes</span></button>
+  </div>
+  <p style="font-size:11px;color:var(--text3);margin-top:7px">Mercado Pro: boleta electrónica incluida sin costo · Klap: 0,39 UF/mes + IVA incluida siempre</p>
+</div>
+
+<div id="warn" class="warn" style="display:none">⚠ El mix no suma 100%. Ajusta los porcentajes.</div>
+
+<!-- ── PLAN CARDS ── -->
+<p class="sec" style="margin-top:1.2rem">Desglose de costos mensuales · neto + IVA + total</p>
+<div class="pg">
+
+  <!-- MP ESTÁNDAR -->
+  <div class="pc">
+    <div class="ph">
+      <div>
+        <div class="pname">MP Estándar</div>
+        <div class="psub">Sin mensualidad · Sin arriendo</div>
+      </div>
+      <span class="badge b-mp" id="est-tier">—</span>
+    </div>
+    <table class="ct">
+      <tr><td class="key">Boleta efectivo</td>         <td class="num" id="e-bol-n">—</td><td class="iva-col" id="e-bol-v">—</td></tr>
+      <tr><td class="key">Comisión débito/prepago</td> <td class="num" id="e-deb-n">—</td><td class="iva-col" id="e-deb-v">—</td></tr>
+      <tr><td class="key">Comisión crédito/intl</td>   <td class="num" id="e-cr-n">—</td> <td class="iva-col" id="e-cr-v">—</td></tr>
+      <tr class="row-sub"><td class="sep">Subtotal neto</td><td class="num sep" id="e-sub">—</td><td class="sep"></td></tr>
+      <tr class="row-iva"><td>IVA 19%</td>             <td class="num" id="e-iva">—</td><td></td></tr>
+      <tr class="row-tot"><td>Total mensual</td>        <td class="num" colspan="2" id="e-tot">—</td></tr>
+      <tr class="row-net"><td colspan="3" id="e-net">—</td></tr>
+      <tr class="row-tasa"><td colspan="3" id="e-tasa">—</td></tr>
+      <tr class="row-diff"><td colspan="3" id="e-diff"></td></tr>
+    </table>
+  </div>
+
+  <!-- MERCADO PRO -->
+  <div class="pc">
+    <div class="ph">
+      <div>
+        <div class="pname">Mercado Pro</div>
+        <div class="psub">$18.445/mes IVA incl. · Boleta incluida</div>
+      </div>
+      <span class="badge b-pro" id="pro-tier">—</span>
+    </div>
+    <table class="ct">
+      <tr><td class="key">Suscripción mensual</td>      <td class="num">$15.500</td><td class="iva-col">+$2.945 IVA</td></tr>
+      <tr><td class="key">Boleta electrónica</td>        <td class="num grn">Incluida ✓</td><td class="iva-col">—</td></tr>
+      <tr><td class="key">Comisión débito/prepago</td>  <td class="num" id="p-deb-n">—</td><td class="iva-col" id="p-deb-v">—</td></tr>
+      <tr><td class="key">Comisión crédito/intl</td>    <td class="num" id="p-cr-n">—</td> <td class="iva-col" id="p-cr-v">—</td></tr>
+      <tr class="row-sub"><td class="sep">Subtotal neto</td><td class="num sep" id="p-sub">—</td><td class="sep"></td></tr>
+      <tr class="row-iva"><td>IVA 19%</td>              <td class="num" id="p-iva">—</td><td></td></tr>
+      <tr class="row-tot"><td>Total mensual</td>          <td class="num" colspan="2" id="p-tot">—</td></tr>
+      <tr class="row-net"><td colspan="3" id="p-net">—</td></tr>
+      <tr class="row-tasa"><td colspan="3" id="p-tasa">—</td></tr>
+      <tr class="row-diff"><td colspan="3" id="p-diff"></td></tr>
+    </table>
+  </div>
+
+  <!-- KLAP -->
+  <div class="pc">
+    <div class="ph">
+      <div>
+        <div class="pname">Klap</div>
+        <div class="psub">Arriendo + boleta en UF · + IVA</div>
+      </div>
+      <span class="badge b-kl">Pos Klap</span>
+    </div>
+    <table class="ct">
+      <tr><td class="key">Arriendo (0,5 UF/mes)</td>    <td class="num" id="k-arr-n">—</td><td class="iva-col" id="k-arr-v">—</td></tr>
+      <tr><td class="key">Boleta (0,39 UF/mes)</td>      <td class="num" id="k-bol-n">—</td><td class="iva-col" id="k-bol-v">—</td></tr>
+      <tr><td class="key">Comisión débito (0,62%)</td>   <td class="num" id="k-deb-n">—</td><td class="iva-col" id="k-deb-v">—</td></tr>
+      <tr><td class="key">Comisión crédito (1,39%)</td>  <td class="num" id="k-cr-n">—</td> <td class="iva-col" id="k-cr-v">—</td></tr>
+      <tr><td class="key">Comisión intl (2,88%)</td>     <td class="num" id="k-int-n">—</td><td class="iva-col" id="k-int-v">—</td></tr>
+      <tr class="row-sub"><td class="sep">Subtotal neto</td><td class="num sep" id="k-sub">—</td><td class="sep"></td></tr>
+      <tr class="row-iva"><td>IVA 19%</td>               <td class="num" id="k-iva">—</td><td></td></tr>
+      <tr class="row-tot"><td>Total mensual</td>           <td class="num" colspan="2" id="k-tot">—</td></tr>
+      <tr class="row-net"><td colspan="3" id="k-net">—</td></tr>
+      <tr class="row-tasa"><td colspan="3" id="k-tasa">—</td></tr>
+      <tr class="row-diff"><td colspan="3" id="k-diff"></td></tr>
+    </table>
+  </div>
+
+</div><!-- /pg -->
+
+<!-- ── WINNER BANNER ── -->
+<div class="win">
+  <div>
+    <div class="win-lbl">Opción más económica este mes</div>
+    <div class="win-name" id="win-name">—</div>
+    <div class="win-desc" id="win-desc">—</div>
+  </div>
+  <div style="text-align:right">
+    <div class="win-lbl">Ahorro mensual vs siguiente opción</div>
+    <div class="win-num" id="win-save">—</div>
+    <div style="font-size:11px;color:var(--teal)" id="win-annual">—</div>
+  </div>
+</div>
+
+<!-- ── CHART ── -->
+<div class="chart-card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+    <div style="font-size:14px;font-weight:500">Costo total mensual IVA incluido según nivel de ventas</div>
+    <div class="leg">
+      <span><span class="ld" style="background:#378ADD"></span>MP Estándar</span>
+      <span><span class="ld" style="background:#639922"></span>Mercado Pro</span>
+      <span><span class="ld" style="background:#EF9F27"></span>Klap</span>
+    </div>
+  </div>
+  <div style="position:relative;height:230px">
+    <canvas id="chart" role="img" aria-label="Comparativa de costos mensuales IVA incluido entre los tres planes según nivel de ventas"></canvas>
+  </div>
+  <p style="font-size:11px;color:var(--text3);margin-top:.5rem">N° transacciones estimado según ticket promedio ingresado. Klap: 0,0019 UF fijo por transacción afecta el costo total.</p>
+</div>
+
+<!-- ── RECOMMENDATION ── -->
+<p class="sec">Recomendación final</p>
+<div class="rec-box" id="rec-box">
+  <h3 id="rec-title">—</h3>
+  <p class="rec-body" id="rec-body">—</p>
+</div>
+
+<!-- ── REF TABLES ── -->
+<p class="sec">Tablas de comisiones de referencia (valores netos, sin IVA)</p>
+<div class="ig2">
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;color:var(--mpd);margin-bottom:.75rem">MP Estándar</p>
+    <table class="rt">
+      <thead><tr><th>Ventas c/tarjeta</th><th>Déb./Prep.</th><th>Cré./Intl</th></tr></thead>
+      <tbody>
+        <tr id="r-e1"><td>Hasta $2.000.000</td><td>2,19%</td><td>2,69%</td></tr>
+        <tr id="r-e2"><td>$2M – $4M</td><td>1,99%</td><td>2,59%</td></tr>
+        <tr id="r-e3"><td>$4M – $8M</td><td>1,79%</td><td>2,49%</td></tr>
+        <tr id="r-e4"><td>$8M – $25M</td><td>1,45%</td><td>2,25%</td></tr>
+        <tr id="r-e5"><td>Más de $25M</td><td>1,19%</td><td>1,99%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;color:var(--prod);margin-bottom:.75rem">Mercado Pro</p>
+    <table class="rt">
+      <thead><tr><th>Ventas c/tarjeta</th><th>Déb./Prep.</th><th>Cré./Intl</th></tr></thead>
+      <tbody>
+        <tr id="r-p1"><td>Hasta $5.000.000</td><td>$89 + 0,74%</td><td>$99 + 1,99%</td></tr>
+        <tr id="r-p2"><td>$5M – $15M</td><td>$84 + 0,74%</td><td>$99 + 1,89%</td></tr>
+        <tr id="r-p3"><td>$15M – $30M</td><td>$79 + 0,69%</td><td>$94 + 1,84%</td></tr>
+        <tr id="r-p4"><td>Más de $30M</td><td>$74 + 0,69%</td><td>$89 + 1,79%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;color:var(--kld);margin-bottom:.75rem">Klap · tarifas netas sin IVA</p>
+    <table class="rt">
+      <thead><tr><th>Tipo tarjeta</th><th>Fijo/transacción</th><th>Variable</th></tr></thead>
+      <tbody>
+        <tr><td>Débito</td><td>0,0019 UF</td><td>0,62%</td></tr>
+        <tr><td>Crédito</td><td>0,0019 UF</td><td>1,39%</td></tr>
+        <tr><td>Prepago</td><td>0,0019 UF</td><td>1,06%</td></tr>
+        <tr><td>Internacional</td><td>0,0083 UF</td><td>2,88%</td></tr>
+        <tr><td>Arriendo equipo</td><td colspan="2">6 UF/año → 0,5 UF/mes</td></tr>
+        <tr><td>Boleta electrónica</td><td colspan="2">0,39 UF/mes</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;margin-bottom:.75rem">Costos fijos mensuales IVA incluido</p>
+    <table class="rt">
+      <thead><tr><th>Concepto</th><th>Estándar</th><th>Pro</th><th>Klap</th></tr></thead>
+      <tbody>
+        <tr><td>Suscripción/Arriendo</td><td>—</td><td>$18.445</td><td id="kl-fix-arr">—</td></tr>
+        <tr><td>Boleta electrónica</td><td id="mp-fix-bol">$13.090</td><td style="color:var(--grn)">Incluida</td><td id="kl-fix-bol">—</td></tr>
+        <tr><td style="font-weight:600">Total fijo</td><td id="mp-fix-tot">$13.090</td><td>$18.445</td><td id="kl-fix-tot">—</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px">Boleta con tarjeta (comprobante electrónico) es gratuita en todos los planes. Equipo MP Estándar: $59.900 pago único.</p>
+  </div>
+</div>
+
+<p class="fn">Tarifas según propuesta comercial Mercado Pago (Andrea Hidalgo, mayo 2026) y tarifas públicas Klap. UF 26/05/2026: $40.526,20. Comisiones MP sin IVA; IVA 19% aplicado en todos los cálculos. Tramo MP según volumen total mensual con tarjeta. MP Estándar: equipo $59.900 IVA incl. pago único no incluido en el costo mensual. Mercado Pro: equipo incluido en la suscripción. Klap: fijo en UF, se reajusta con inflación. Verifica condiciones vigentes con cada proveedor.</p>
+</div>
+
+<script>
+const IVA = 0.19;
+let bPlan = 'si';
+let myChart = null;
+
+const ET = [
+  {max:2e6,   rd:.0219, rc:.0269, label:'≤ $2M',    row:'r-e1'},
+  {max:4e6,   rd:.0199, rc:.0259, label:'$2M–$4M',  row:'r-e2'},
+  {max:8e6,   rd:.0179, rc:.0249, label:'$4M–$8M',  row:'r-e3'},
+  {max:25e6,  rd:.0145, rc:.0225, label:'$8M–$25M', row:'r-e4'},
+  {max:Infinity, rd:.0119, rc:.0199, label:'> $25M', row:'r-e5'},
+];
+const PT = [
+  {max:5e6,   fd:89, rd:.0074, fc:99, rc:.0199, label:'≤ $5M',    row:'r-p1'},
+  {max:15e6,  fd:84, rd:.0074, fc:99, rc:.0189, label:'$5M–$15M', row:'r-p2'},
+  {max:30e6,  fd:79, rd:.0069, fc:94, rc:.0184, label:'$15M–$30M',row:'r-p3'},
+  {max:Infinity, fd:74, rd:.0069, fc:89, rc:.0179, label:'> $30M', row:'r-p4'},
+];
+
+const te = v => ET.find(t => v <= t.max);
+const tp = v => PT.find(t => v <= t.max);
+const N  = n => '$' + Math.round(n).toLocaleString('es-CL');
+const P  = r => (r * 100).toFixed(2) + '%';
+const iv = n => Math.round(n * IVA);
+const wiv= n => Math.round(n * (1 + IVA));
+
+// ── Auto-adjust mix so sliders always sum to 100 ──────────────────────────────
+function syncMix(changedId) {
+  const ids = ['deb', 'cred', 'intl'];
+  const val = parseInt(document.getElementById(changedId).value);
+  const clamped = Math.min(100, Math.max(0, val));
+  document.getElementById(changedId).value = clamped;
+
+  const others = ids.filter(id => id !== changedId);
+  const a = document.getElementById(others[0]);
+  const b = document.getElementById(others[1]);
+  const sumOthers = parseInt(a.value) + parseInt(b.value);
+  const remaining = 100 - clamped;
+
+  if (remaining <= 0) {
+    a.value = 0; b.value = 0;
+  } else if (sumOthers === 0) {
+    a.value = Math.round(remaining / 2);
+    b.value = remaining - Math.round(remaining / 2);
+  } else {
+    const newA = Math.round(remaining * parseInt(a.value) / sumOthers);
+    const newB = remaining - newA;
+    a.value = Math.max(0, newA);
+    b.value = Math.max(0, newB);
+  }
+  calc();
+}
+
+function setBoleta(p) {
+  bPlan = p;
+  document.getElementById('tb-no').className = 'tb' + (p === 'no' ? ' on' : '');
+  document.getElementById('tb-si').className = 'tb' + (p === 'si' ? ' on' : '');
+  calc();
+}
+
+// ── Set a neto+IVA pair ───────────────────────────────────────────────────────
+function setRow(nId, vId, neto) {
+  document.getElementById(nId).textContent = N(neto);
+  document.getElementById(vId).textContent = '+' + N(iv(neto)) + ' IVA';
+}
+
+function highlightTier(prefix, activeRow, count) {
+  for (let i = 1; i <= count; i++) {
+    const r = document.getElementById(prefix + i);
+    if (r) r.className = (r.id === activeRow ? 'hl' : '');
+  }
+}
+
+// ── Main calculation ──────────────────────────────────────────────────────────
+function calc() {
+  const ventas = parseFloat(document.getElementById('ventas').value) || 0;
+  const ticket = parseFloat(document.getElementById('ticket').value) || 1;
+  const uf     = parseFloat(document.getElementById('uf').value)     || 40526;
+  const tx     = Math.max(1, Math.round(ventas / ticket));
+
+  const pD = (parseFloat(document.getElementById('deb').value)  || 0) / 100;
+  const pC = (parseFloat(document.getElementById('cred').value) || 0) / 100;
+  const pI = (parseFloat(document.getElementById('intl').value) || 0) / 100;
+
+  // Update labels
+  document.getElementById('lbl-deb').textContent  = Math.round(pD * 100) + '%';
+  document.getElementById('lbl-cred').textContent = Math.round(pC * 100) + '%';
+  document.getElementById('lbl-intl').textContent = Math.round(pI * 100) + '%';
+
+  const sum = Math.round((pD + pC + pI) * 100);
+  const mt  = document.getElementById('mix-total');
+  mt.textContent  = 'Total: ' + sum + '%';
+  mt.style.color  = sum !== 100 ? 'var(--red)' : 'var(--text3)';
+  document.getElementById('warn').style.display = sum !== 100 ? 'block' : 'none';
+
+  // ── MP ESTÁNDAR ──────────────────────────────────────────────────────────────
+  const et      = te(ventas);
+  const eBolN   = bPlan === 'si' ? 11000 : 0;
+  const eDebN   = ventas * pD * et.rd;
+  const eCredN  = ventas * (pC + pI) * et.rc;
+  const eSubN   = eBolN + eDebN + eCredN;
+  const eIva    = iv(eSubN);
+  const eTot    = eSubN + eIva;
+
+  document.getElementById('est-tier').textContent = 'Tramo ' + et.label;
+  if (bPlan === 'si') {
+    document.getElementById('e-bol-n').textContent = N(eBolN);
+    document.getElementById('e-bol-v').textContent = '+' + N(iv(eBolN)) + ' IVA';
+  } else {
+    document.getElementById('e-bol-n').textContent = '—';
+    document.getElementById('e-bol-v').textContent = 'no contratado';
+  }
+  setRow('e-deb-n', 'e-deb-v', eDebN);
+  setRow('e-cr-n',  'e-cr-v',  eCredN);
+  document.getElementById('e-sub').textContent  = N(eSubN);
+  document.getElementById('e-iva').textContent  = N(eIva);
+  document.getElementById('e-tot').textContent  = N(eTot);
+  document.getElementById('e-net').textContent  = 'Neto recibido: ' + N(ventas - eTot);
+  document.getElementById('e-tasa').textContent = ventas > 0 ? 'Tasa efectiva: ' + P(eTot / ventas) : '';
+  highlightTier('r-e', et.row, 5);
+  document.getElementById('mp-fix-bol').textContent = bPlan === 'si' ? N(wiv(11000)) : '$0';
+  document.getElementById('mp-fix-tot').textContent = bPlan === 'si' ? N(wiv(11000)) : '$0';
+
+  // ── MERCADO PRO ───────────────────────────────────────────────────────────────
+  const pt      = tp(ventas);
+  const txD     = Math.round(tx * pD);
+  const txC     = Math.round(tx * pC);
+  const txI     = Math.round(tx * pI);
+  const pSusN   = Math.round(18445 / 1.19);  // 15500 neto
+  const pDebN   = txD * pt.fd + ventas * pD * pt.rd;
+  const pCredN  = txC * pt.fc + ventas * pC * pt.rc;
+  const pIntlN  = txI * pt.fc + ventas * pI * pt.rc;
+  const pSubN   = pSusN + pDebN + pCredN + pIntlN;
+  const pIva    = iv(pSubN);
+  const pTot    = pSubN + pIva;
+
+  document.getElementById('pro-tier').textContent = 'Tramo ' + pt.label;
+  setRow('p-deb-n', 'p-deb-v', pDebN);
+  setRow('p-cr-n',  'p-cr-v',  pCredN + pIntlN);
+  document.getElementById('p-sub').textContent  = N(pSubN);
+  document.getElementById('p-iva').textContent  = N(pIva);
+  document.getElementById('p-tot').textContent  = N(pTot);
+  document.getElementById('p-net').textContent  = 'Neto recibido: ' + N(ventas - pTot);
+  document.getElementById('p-tasa').textContent = ventas > 0 ? 'Tasa efectiva: ' + P(pTot / ventas) : '';
+  highlightTier('r-p', pt.row, 4);
+
+  // ── KLAP ─────────────────────────────────────────────────────────────────────
+  const kArrN  = 0.5   * uf;
+  const kBolN  = 0.39  * uf;
+  const kDebN  = tx * pD * 0.0019 * uf + ventas * pD * 0.0062;
+  const kCredN = tx * pC * 0.0019 * uf + ventas * pC * 0.0139;
+  const kIntlN = tx * pI * 0.0083 * uf + ventas * pI * 0.0288;
+  const kSubN  = kArrN + kBolN + kDebN + kCredN + kIntlN;
+  const kIva   = iv(kSubN);
+  const kTot   = kSubN + kIva;
+
+  setRow('k-arr-n', 'k-arr-v', kArrN);
+  setRow('k-bol-n', 'k-bol-v', kBolN);
+  setRow('k-deb-n', 'k-deb-v', kDebN);
+  setRow('k-cr-n',  'k-cr-v',  kCredN);
+  setRow('k-int-n', 'k-int-v', kIntlN);
+  document.getElementById('k-sub').textContent  = N(kSubN);
+  document.getElementById('k-iva').textContent  = N(kIva);
+  document.getElementById('k-tot').textContent  = N(kTot);
+  document.getElementById('k-net').textContent  = 'Neto recibido: ' + N(ventas - kTot);
+  document.getElementById('k-tasa').textContent = ventas > 0 ? 'Tasa efectiva: ' + P(kTot / ventas) : '';
+  // Klap fixed table
+  document.getElementById('kl-fix-arr').textContent = N(wiv(kArrN));
+  document.getElementById('kl-fix-bol').textContent = N(wiv(kBolN));
+  document.getElementById('kl-fix-tot').textContent = N(wiv(kArrN + kBolN));
+
+  // ── DIFFS dentro de cada card ─────────────────────────────────────────────────
+  const tots = [
+    { name: 'MP Estándar', val: eTot },
+    { name: 'Mercado Pro', val: pTot },
+    { name: 'Klap',        val: kTot },
+  ].sort((a, b) => a.val - b.val);
+
+  const bestVal  = tots[0].val;
+  const bestName = tots[0].name;
+
+  function setDiff(elId, myVal) {
+    const el   = document.getElementById(elId);
+    const diff = myVal - bestVal;
+    if (diff < 50) {
+      el.className = 'row-diff grn';
+      el.textContent = '✓ Opción más económica';
+    } else {
+      el.className = 'row-diff red';
+      el.textContent = '▲ ' + N(diff) + ' más caro que ' + bestName;
+    }
+  }
+  setDiff('e-diff', eTot);
+  setDiff('p-diff', pTot);
+  setDiff('k-diff', kTot);
+
+  // ── WINNER BANNER ─────────────────────────────────────────────────────────────
+  document.getElementById('win-name').textContent = tots[0].name;
+  const sav = tots[1].val - tots[0].val;
+  document.getElementById('win-save').textContent  = N(sav) + '/mes';
+  document.getElementById('win-annual').textContent = N(sav * 12) + ' ahorro proyectado al año';
+
+  const winnerDescs = {
+    'MP Estándar': 'Sin mensualidad ni arriendo. Pagas solo comisión por lo que vendes. Tramo ' + et.label + '.',
+    'Mercado Pro':  'Suscripción $18.445 IVA incl. con boleta incluida. Comisiones más bajas por volumen. Tramo ' + pt.label + '.',
+    'Klap':         'Arriendo + boleta ' + N(wiv(kArrN + kBolN)) + '/mes + comisiones desde 0,62%. Conveniente con alto % débito.',
+  };
+  document.getElementById('win-desc').textContent = winnerDescs[tots[0].name];
+
+  // ── RECOMENDACIÓN FINAL ───────────────────────────────────────────────────────
+  buildRecommendation(eTot, pTot, kTot, ventas, et, pt, kArrN, kBolN, pD, pC, pI, uf);
+
+  updateChart(uf, ticket, pD, pC, pI);
+}
+
+function buildRecommendation(eTot, pTot, kTot, ventas, et, pt, kArrN, kBolN, pD, pC, pI, uf) {
+  const ranked = [
+    { name: 'MP Estándar', val: eTot, key: 'est' },
+    { name: 'Mercado Pro',  val: pTot, key: 'pro' },
+    { name: 'Klap',         val: kTot, key: 'kl'  },
+  ].sort((a, b) => a.val - b.val);
+
+  const winner  = ranked[0];
+  const second  = ranked[1];
+  const third   = ranked[2];
+  const diffW2  = second.val - winner.val;
+  const diffW3  = third.val  - winner.val;
+
+  const boxColors = { est: '#E6F1FB', pro: '#EAF3DE', kl: '#FAEEDA' };
+  const boxBorders = { est: '#185FA5', pro: '#3B6D11', kl: '#854F0B' };
+  const box = document.getElementById('rec-box');
+  box.style.borderColor  = boxBorders[winner.key];
+  box.style.background   = 'var(--bg2)';
+
+  const title = document.getElementById('rec-title');
+  title.textContent = 'Te conviene ' + winner.name;
+
+  // Build explanation text
+  let parts = [];
+
+  if (winner.key === 'est') {
+    parts.push('Con <strong>' + N(ventas) + '</strong> de ventas mensuales en el tramo <strong>' + et.label + '</strong>, ' +
+      'MP Estándar es la opción más barata porque no tiene costo fijo mensual. ' +
+      'Solo pagas comisión sobre lo que vendes (' + (pD*100).toFixed(0) + '% débito a ' + (et.rd*100).toFixed(2) + '%, ' +
+      (((pC+pI)*100)).toFixed(0) + '% crédito/intl a ' + (et.rc*100).toFixed(2) + '%).');
+    if (pTot - eTot < 3000) {
+      parts.push('Mercado Pro queda a solo <strong>' + N(pTot - eTot) + '/mes</strong> de diferencia. ' +
+        'Si tus ventas crecen o si cobras en efectivo con frecuencia (boleta incluida en Pro), ' +
+        'podrías recuperar la suscripción rápidamente.');
+    }
+  } else if (winner.key === 'pro') {
+    parts.push('Con <strong>' + N(ventas) + '</strong> de ventas mensuales en el tramo <strong>' + pt.label + '</strong>, ' +
+      'Mercado Pro resulta más conveniente pese a su suscripción de $18.445/mes. ' +
+      'Sus comisiones más bajas por transacción compensan el costo fijo. ' +
+      'Además incluye boleta electrónica sin costo adicional.');
+    parts.push('MP Estándar queda <strong>' + N(eTot - pTot) + '/mes más caro</strong> en este nivel de ventas. ' +
+      'Si tus ventas bajaran de <strong>$' + estimateProBreakeven(et, pt, bPlan) + '</strong> aproximadamente, ' +
+      'Estándar volvería a ser más económico.');
+  } else {
+    parts.push('Con <strong>' + N(ventas) + '</strong> de ventas y un mix de ' +
+      Math.round(pD*100) + '% débito, ' + Math.round(pC*100) + '% crédito, ' + Math.round(pI*100) + '% internacional, ' +
+      'Klap resulta la opción más económica gracias a sus bajas comisiones variables ' +
+      '(0,62% débito, 1,39% crédito).');
+    parts.push('El costo fijo de Klap (arriendo + boleta = <strong>' + N(Math.round((kArrN + kBolN) * 1.19)) + '/mes IVA incl.</strong>) ' +
+      'se justifica porque las comisiones variables son significativamente menores que las de Mercado Pago.');
+  }
+
+  // Universal tip about Klap vs MP
+  if (winner.key !== 'kl' && kTot - winner.val > 0) {
+    parts.push('Klap tiene costos fijos en UF que se reajustan con la inflación (' +
+      N(Math.round((kArrN + kBolN) * 1.19)) + '/mes IVA incl. hoy). ' +
+      'Conviene evaluarlo si tienes alto volumen con mayoría de débito, donde su tasa del 0,62% lo hace muy competitivo.');
+  }
+
+  document.getElementById('rec-body').innerHTML = parts.map(p => '<p style="margin-bottom:.5rem">' + p + '</p>').join('');
+}
+
+function estimateProBreakeven(et, pt, bPlan) {
+  // Rough estimate: find monthly sales where pro cost = est cost
+  // (simplified, assuming 60% deb / 40% cred mix)
+  const pD = 0.6, pC = 0.4;
+  for (let v = 500000; v <= 30e6; v += 100000) {
+    const eN = (bPlan === 'si' ? 11000 : 0) + v * pD * et.rd + v * pC * et.rc;
+    const pN = Math.round(18445/1.19) + (v/15000) * (0.6*pt.fd + 0.4*pt.fc) + v * pD * pt.rd + v * pC * pt.rc;
+    if (pN * 1.19 <= eN * 1.19) return Math.round(v / 1e6 * 10) / 10 + 'M';
+  }
+  return '—';
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+function updateChart(uf, ticket, pD, pC, pI) {
+  const lvls = [5e5, 1e6, 2e6, 3e6, 5e6, 8e6, 1e7, 15e6, 2e7, 3e7];
+  const labs  = ['$500K','$1M','$2M','$3M','$5M','$8M','$10M','$15M','$20M','$30M'];
+
+  function estT(v) {
+    const t  = te(v);
+    const n  = (bPlan === 'si' ? 11000 : 0) + v * pD * t.rd + v * (pC + pI) * t.rc;
+    return Math.round(n * (1 + IVA));
+  }
+  function proT(v) {
+    const t  = tp(v);
+    const tx = Math.max(1, Math.round(v / ticket));
+    const n  = Math.round(18445 / 1.19) +
+               Math.round(tx*pD)*t.fd + v*pD*t.rd +
+               Math.round(tx*pC)*t.fc + v*pC*t.rc +
+               Math.round(tx*pI)*t.fc + v*pI*t.rc;
+    return Math.round(n * (1 + IVA));
+  }
+  function klT(v) {
+    const tx = Math.max(1, Math.round(v / ticket));
+    const n  = 0.5*uf + 0.39*uf +
+               tx*pD*0.0019*uf + v*pD*0.0062 +
+               tx*pC*0.0019*uf + v*pC*0.0139 +
+               tx*pI*0.0083*uf + v*pI*0.0288;
+    return Math.round(n * (1 + IVA));
+  }
+
+  if (myChart) myChart.destroy();
+  const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const gc   = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tc   = dark ? '#888780' : '#9e9c95';
+
+  myChart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: labs,
+      datasets: [
+        { label:'MP Estándar', data:lvls.map(estT), borderColor:'#378ADD', borderWidth:2, pointRadius:3, pointBackgroundColor:'#378ADD', fill:false, tension:.3 },
+        { label:'Mercado Pro',  data:lvls.map(proT), borderColor:'#639922', borderWidth:2, pointRadius:3, pointBackgroundColor:'#639922', fill:false, tension:.3, borderDash:[6,3] },
+        { label:'Klap',         data:lvls.map(klT),  borderColor:'#EF9F27', borderWidth:2, pointRadius:3, pointBackgroundColor:'#EF9F27', fill:false, tension:.3, borderDash:[2,3] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': $' + c.raw.toLocaleString('es-CL') } }
+      },
+      scales: {
+        x: { grid: { color: gc }, ticks: { color: tc, font: { size: 11 } } },
+        y: { grid: { color: gc }, ticks: { color: tc, font: { size: 11 },
+             callback: v => '$' + (v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1000).toFixed(0)+'K') } }
+      }
+    }
+  });
+}
+
+calc();
+</script>
+</body>
+</html>
