@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Mercado Pago vs Transbank — Chile 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#fff;--bg2:#f6f5f2;--bg3:#edece8;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#9e9c95;
+  --border:rgba(0,0,0,0.11);--border2:rgba(0,0,0,0.22);
+  --rl:14px;--r:8px;
+  --mp:#185FA5;--mpl:#E6F1FB;--mpd:#0C447C;
+  --pro:#3B6D11;--prol:#EAF3DE;--prod:#27500A;
+  --tb:#6B2FD4;--tbl:#F0EAFF;--tbd:#3D1680;
+  --teal:#0F6E56;--teall:#E1F5EE;--teald:#085041;
+  --red:#A32D2D;--grn:#27500A;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+  --text:#f0ede8;--text2:#b4b2a9;--text3:#888780;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.22);
+  --mp:#85B7EB;--mpl:#0C447C;--mpd:#B5D4F4;
+  --pro:#97C459;--prol:#1e3a08;--prod:#C0DD97;
+  --tb:#B899F5;--tbl:#2D1760;--tbd:#D8C3FF;
+  --teal:#5DCAA5;--teall:#063328;--teald:#9FE1CB;
+  --red:#F09595;--grn:#97C459;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5}
+.wrap{max-width:1060px;margin:0 auto;padding:2rem 1.5rem 3rem}
+h1{font-size:22px;font-weight:600;margin-bottom:3px}
+.sub{font-size:13px;color:var(--text2);margin-bottom:1.75rem}
+.sec{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.ig2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem}
+.ig3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;margin-bottom:.9rem}
+@media(max-width:600px){.ig2,.ig3{grid-template-columns:1fr}}
+label.lbl{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
+input[type=number]{background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:14px;color:var(--text);width:100%;outline:none}
+input[type=number]:focus{border-color:var(--mp)}
+.mix-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=range]{width:100%;height:4px;accent-color:var(--mp);margin-top:5px;cursor:pointer}
+.vb{font-size:12px;font-weight:600;color:var(--text)}
+.seg-lbl{font-size:11px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.tog-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tb-btn{border:0.5px solid var(--border2);border-radius:6px;padding:6px 14px;font-size:13px;background:var(--bg3);color:var(--text2);cursor:pointer;transition:.15s;line-height:1.5;text-align:left}
+.tb-btn.on{background:var(--mpl);border-color:var(--mp);color:var(--mpd);font-weight:500}
+/* 3-col plan grid */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin-bottom:.9rem}
+@media(max-width:720px){.pg{grid-template-columns:1fr}}
+.pc{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.9rem;gap:6px;flex-wrap:wrap}
+.pname{font-size:14px;font-weight:600}
+.psub{font-size:11px;color:var(--text2);margin-top:2px}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.b-mp{background:var(--mpl);color:var(--mpd)}
+.b-pro{background:var(--prol);color:var(--prod)}
+.b-tb{background:var(--tbl);color:var(--tbd)}
+/* cost breakdown table */
+.ct{width:100%;border-collapse:collapse;font-size:12.5px}
+.ct td{padding:5px 3px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.ct tr:last-child td{border-bottom:none}
+.ct .key{color:var(--text2);width:55%}
+.ct .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ct .iva-col{text-align:right;font-size:11px;color:var(--text3);white-space:nowrap}
+.ct .sep{border-top:1px solid var(--border2)!important;padding-top:7px!important}
+.ct .row-sub td{color:var(--text2);font-size:12px}
+.ct .row-iva td{color:var(--text3);font-size:12px}
+.ct .row-tot td{font-size:16px;font-weight:700;padding-top:6px;color:var(--text)}
+.ct .row-net td{font-size:11px;color:var(--text3);padding-top:2px}
+.ct .row-tasa td{font-size:11px;color:var(--text3)}
+.ct .row-min td{font-size:11px;font-style:italic;color:var(--tb);padding-top:2px}
+.ct .row-diff td{font-size:12px;font-weight:600;padding-top:4px}
+.grn{color:var(--grn)!important}
+.red{color:var(--red)!important}
+/* winner banner */
+.win{background:var(--teall);border:1.5px solid var(--teal);border-radius:var(--rl);padding:1.1rem 1.25rem;margin-bottom:.9rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem}
+.win-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:2px}
+.win-name{font-size:18px;font-weight:700;color:var(--teald)}
+.win-desc{font-size:12px;color:var(--teal);margin-top:3px;line-height:1.5}
+.win-num{font-size:21px;font-weight:700;color:var(--teald)}
+/* rank table */
+.rank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin-bottom:.9rem}
+@media(max-width:720px){.rank-grid{grid-template-columns:1fr}}
+.rank-card{border-radius:var(--rl);padding:1rem 1.1rem;border:0.5px solid var(--border);background:var(--bg2);position:relative}
+.rank-card.rank-1{border-color:var(--teal);border-width:1.5px}
+.rank-num{position:absolute;top:-10px;left:12px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--bg2);border:0.5px solid var(--border)}
+.rank-1 .rank-num{background:var(--teal);color:#fff;border-color:var(--teal)}
+.rank-2 .rank-num{background:var(--bg3);color:var(--text2)}
+.rank-3 .rank-num{background:var(--bg3);color:var(--text3)}
+.rank-plan{font-size:15px;font-weight:700;margin-top:6px;margin-bottom:4px}
+.rank-total{font-size:22px;font-weight:700}
+.rank-detail{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.6}
+.rank-diff{font-size:12px;font-weight:600;margin-top:4px}
+/* recommendation box */
+.rec-box{border-radius:var(--rl);padding:1.25rem;margin-bottom:.9rem;border:0.5px solid var(--border);background:var(--bg2)}
+.rec-box h3{font-size:15px;font-weight:600;margin-bottom:.6rem}
+.rec-body{font-size:13px;color:var(--text2);line-height:1.75}
+.rec-body p{margin-bottom:.5rem}
+.rec-body strong{color:var(--text);font-weight:600}
+/* chart */
+.chart-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:.9rem}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+/* ref tables */
+.rt{width:100%;border-collapse:collapse;font-size:12px}
+.rt th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:4px 6px;text-align:left;border-bottom:0.5px solid var(--border2)}
+.rt td{padding:5px 6px;border-bottom:0.5px solid var(--border);color:var(--text2)}
+.rt tr:last-child td{border-bottom:none}
+.rt .hl td{font-weight:600;color:var(--text);background:var(--bg3)}
+.min-tag{font-size:10px;background:var(--tbl);color:var(--tbd);border-radius:3px;padding:1px 5px;font-weight:600;margin-left:4px}
+.warn{background:var(--tbl);border:0.5px solid var(--tb);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--tbd);margin-bottom:.9rem;display:none}
+.fn{font-size:11px;color:var(--text3);margin-top:1.5rem;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Simulador de costos · Mercado Pago vs Transbank · Chile 2026</h1>
+<p class="sub">MP Estándar · Mercado Pro · Transbank — desglose neto + IVA + total mensual con recomendación</p>
+
+<!-- ── INPUTS ── -->
+<p class="sec">Parámetros de tu negocio</p>
+<div class="ig2">
+  <div class="card">
+    <label class="lbl">Ventas mensuales con tarjeta (CLP)</label>
+    <input type="number" id="ventas" value="3000000" step="100000" min="100000" oninput="calc()">
+  </div>
+  <div class="card">
+    <label class="lbl">Ticket promedio por transacción (CLP) <span style="font-size:11px;color:var(--text3)">— importante para mínimos Transbank</span></label>
+    <input type="number" id="ticket" value="15000" step="500" min="500" oninput="calc()">
+  </div>
+  <div class="card">
+    <label class="lbl">Valor UF (CLP) · 26 may 2026: <strong>$40.526</strong></label>
+    <input type="number" id="uf" value="40526" step="1" oninput="calc()">
+  </div>
+  <div class="card">
+    <label class="lbl">Mix de tarjetas — al mover un slider los otros se ajustan automáticamente</label>
+    <div class="mix-grid">
+      <div>
+        <div class="seg-lbl">Débito / Prepago <span class="vb" id="lbl-deb">60%</span></div>
+        <input type="range" id="deb" min="0" max="100" value="60" oninput="syncMix('deb')">
+      </div>
+      <div>
+        <div class="seg-lbl">Crédito nacional <span class="vb" id="lbl-cred">30%</span></div>
+        <input type="range" id="cred" min="0" max="100" value="30" oninput="syncMix('cred')">
+      </div>
+      <div>
+        <div class="seg-lbl">Internacional / cuotas <span class="vb" id="lbl-intl">10%</span></div>
+        <input type="range" id="intl" min="0" max="100" value="10" oninput="syncMix('intl')">
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+        <span style="font-size:11px;color:var(--text3)" id="mix-total">Total: 100%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:.9rem">
+  <label class="lbl">Boleta electrónica efectivo · MP Estándar (cobros con tarjeta incluyen comprobante gratis · Transbank no tiene servicio de boleta)</label>
+  <div class="tog-row">
+    <button class="tb-btn" id="btn-no" onclick="setBoleta('no')">Sin boleta efectivo<br><span style="font-size:11px;font-weight:400">$0/mes</span></button>
+    <button class="tb-btn on" id="btn-si" onclick="setBoleta('si')">Con boleta electrónica<br><span style="font-size:11px;font-weight:400">$11.000 neto + IVA/mes</span></button>
+  </div>
+  <p style="font-size:11px;color:var(--text3);margin-top:7px">Mercado Pro: boleta electrónica incluida sin costo · Transbank: no ofrece servicio de boleta electrónica</p>
+</div>
+
+<div id="warn-mix" class="warn" style="display:none;background:var(--tbl);border-color:var(--tb);color:var(--tbd)">⚠ El mix de tarjetas no suma 100%. Ajusta los porcentajes.</div>
+<div id="warn-min" class="warn" style="display:none">⚡ Transbank aplicará <strong>comisión mínima por transacción</strong> con este ticket promedio: la tarifa fija supera el porcentaje calculado.</div>
+
+<!-- ── PLAN CARDS ── -->
+<p class="sec" style="margin-top:1.2rem">Desglose de costos mensuales · neto + IVA + total</p>
+<div class="pg">
+
+  <!-- MP ESTÁNDAR -->
+  <div class="pc">
+    <div class="ph">
+      <div>
+        <div class="pname">MP Estándar</div>
+        <div class="psub">Sin mensualidad · Sin arriendo</div>
+      </div>
+      <span class="badge b-mp" id="est-tier">—</span>
+    </div>
+    <table class="ct">
+      <tr><td class="key">Boleta efectivo</td>          <td class="num" id="e-bol-n">—</td><td class="iva-col" id="e-bol-v">—</td></tr>
+      <tr><td class="key">Comisión débito/prepago</td>  <td class="num" id="e-deb-n">—</td><td class="iva-col" id="e-deb-v">—</td></tr>
+      <tr><td class="key">Comisión crédito/intl</td>    <td class="num" id="e-cr-n">—</td> <td class="iva-col" id="e-cr-v">—</td></tr>
+      <tr class="row-sub"><td class="sep">Subtotal neto</td><td class="num sep" id="e-sub">—</td><td class="sep"></td></tr>
+      <tr class="row-iva"><td>IVA 19%</td>              <td class="num" id="e-iva">—</td><td></td></tr>
+      <tr class="row-tot"><td>Total mensual</td>          <td class="num" colspan="2" id="e-tot">—</td></tr>
+      <tr class="row-net"><td colspan="3" id="e-net">—</td></tr>
+      <tr class="row-tasa"><td colspan="3" id="e-tasa">—</td></tr>
+      <tr class="row-diff"><td colspan="3" id="e-diff"></td></tr>
+    </table>
+  </div>
+
+  <!-- MERCADO PRO -->
+  <div class="pc">
+    <div class="ph">
+      <div>
+        <div class="pname">Mercado Pro</div>
+        <div class="psub">$18.445/mes IVA incl. · Boleta incluida</div>
+      </div>
+      <span class="badge b-pro" id="pro-tier">—</span>
+    </div>
+    <table class="ct">
+      <tr><td class="key">Suscripción mensual</td>      <td class="num">$15.500</td><td class="iva-col">+$2.945 IVA</td></tr>
+      <tr><td class="key">Boleta electrónica</td>        <td class="num grn">Incluida ✓</td><td class="iva-col">—</td></tr>
+      <tr><td class="key">Comisión débito/prepago</td>  <td class="num" id="p-deb-n">—</td><td class="iva-col" id="p-deb-v">—</td></tr>
+      <tr><td class="key">Comisión crédito/intl</td>    <td class="num" id="p-cr-n">—</td> <td class="iva-col" id="p-cr-v">—</td></tr>
+      <tr class="row-sub"><td class="sep">Subtotal neto</td><td class="num sep" id="p-sub">—</td><td class="sep"></td></tr>
+      <tr class="row-iva"><td>IVA 19%</td>              <td class="num" id="p-iva">—</td><td></td></tr>
+      <tr class="row-tot"><td>Total mensual</td>          <td class="num" colspan="2" id="p-tot">—</td></tr>
+      <tr class="row-net"><td colspan="3" id="p-net">—</td></tr>
+      <tr class="row-tasa"><td colspan="3" id="p-tasa">—</td></tr>
+      <tr class="row-diff"><td colspan="3" id="p-diff"></td></tr>
+    </table>
+  </div>
+
+  <!-- TRANSBANK -->
+  <div class="pc">
+    <div class="ph">
+      <div>
+        <div class="pname">Transbank</div>
+        <div class="psub">Arriendo desde 0,64 UF/mes · Sin boleta</div>
+      </div>
+      <span class="badge b-tb">Webpay / POS</span>
+    </div>
+    <table class="ct">
+      <tr><td class="key">Arriendo (0,64 UF/mes)</td>   <td class="num" id="tb-arr-n">—</td><td class="iva-col" id="tb-arr-v">—</td></tr>
+      <tr><td class="key">Boleta electrónica</td>         <td class="num" style="color:var(--text3)">No incluida</td><td class="iva-col">—</td></tr>
+      <tr><td class="key">Comisión débito/prep. <span id="tb-deb-mode" class="min-tag" style="display:none">mínimo</span></td>
+                                                          <td class="num" id="tb-deb-n">—</td><td class="iva-col" id="tb-deb-v">—</td></tr>
+      <tr><td class="key">Comisión crédito/intl <span id="tb-cr-mode" class="min-tag" style="display:none">mínimo</span></td>
+                                                          <td class="num" id="tb-cr-n">—</td> <td class="iva-col" id="tb-cr-v">—</td></tr>
+      <tr class="row-min"><td colspan="3" id="tb-min-note" style="display:none"></td></tr>
+      <tr class="row-sub"><td class="sep">Subtotal neto</td><td class="num sep" id="tb-sub">—</td><td class="sep"></td></tr>
+      <tr class="row-iva"><td>IVA 19%</td>               <td class="num" id="tb-iva">—</td><td></td></tr>
+      <tr class="row-tot"><td>Total mensual</td>           <td class="num" colspan="2" id="tb-tot">—</td></tr>
+      <tr class="row-net"><td colspan="3" id="tb-net">—</td></tr>
+      <tr class="row-tasa"><td colspan="3" id="tb-tasa">—</td></tr>
+      <tr class="row-diff"><td colspan="3" id="tb-diff"></td></tr>
+    </table>
+  </div>
+
+</div><!-- /pg -->
+
+<!-- ── RANKING ── -->
+<p class="sec">Ranking de planes este mes</p>
+<div class="rank-grid" id="rank-grid">
+  <div class="rank-card rank-1" id="rank-0">
+    <div class="rank-num">🥇 1° lugar</div>
+    <div class="rank-plan" id="r0-name">—</div>
+    <div class="rank-total" id="r0-total">—</div>
+    <div class="rank-detail" id="r0-detail">—</div>
+    <div class="rank-diff grn" id="r0-diff">—</div>
+  </div>
+  <div class="rank-card rank-2" id="rank-1">
+    <div class="rank-num">🥈 2° lugar</div>
+    <div class="rank-plan" id="r1-name">—</div>
+    <div class="rank-total" id="r1-total">—</div>
+    <div class="rank-detail" id="r1-detail">—</div>
+    <div class="rank-diff red" id="r1-diff">—</div>
+  </div>
+  <div class="rank-card rank-3" id="rank-2">
+    <div class="rank-num">🥉 3° lugar</div>
+    <div class="rank-plan" id="r2-name">—</div>
+    <div class="rank-total" id="r2-total">—</div>
+    <div class="rank-detail" id="r2-detail">—</div>
+    <div class="rank-diff red" id="r2-diff">—</div>
+  </div>
+</div>
+
+<!-- ── WINNER BANNER ── -->
+<div class="win">
+  <div>
+    <div class="win-lbl">Te conviene</div>
+    <div class="win-name" id="win-name">—</div>
+    <div class="win-desc" id="win-desc">—</div>
+  </div>
+  <div style="text-align:right">
+    <div class="win-lbl">Ahorro mensual vs 2° lugar</div>
+    <div class="win-num" id="win-save">—</div>
+    <div style="font-size:11px;color:var(--teal)" id="win-annual">—</div>
+  </div>
+</div>
+
+<!-- ── CHART ── -->
+<div class="chart-card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+    <div style="font-size:14px;font-weight:500">Costo total mensual IVA incluido según nivel de ventas</div>
+    <div class="leg">
+      <span><span class="ld" style="background:#378ADD"></span>MP Estándar</span>
+      <span><span class="ld" style="background:#639922"></span>Mercado Pro</span>
+      <span><span class="ld" style="background:#6B2FD4"></span>Transbank</span>
+    </div>
+  </div>
+  <div style="position:relative;height:230px">
+    <canvas id="chart" role="img" aria-label="Comparativa de costos mensuales IVA incluido entre los tres planes"></canvas>
+  </div>
+  <p style="font-size:11px;color:var(--text3);margin-top:.5rem">Transbank: comisión mínima se aplica cuando el % sobre el ticket resulta menor a 0,002260 UF (débito) o 0,003515 UF (crédito).</p>
+</div>
+
+<!-- ── RECOMMENDATION ── -->
+<p class="sec">Recomendación final detallada</p>
+<div class="rec-box">
+  <h3 id="rec-title">—</h3>
+  <div class="rec-body" id="rec-body"></div>
+</div>
+
+<!-- ── REF TABLES ── -->
+<p class="sec">Tarifas de referencia (valores netos, sin IVA)</p>
+<div class="ig3">
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;color:var(--mpd);margin-bottom:.75rem">MP Estándar</p>
+    <table class="rt">
+      <thead><tr><th>Ventas c/tarjeta</th><th>Déb./Prep.</th><th>Cré./Intl</th></tr></thead>
+      <tbody>
+        <tr id="r-e1"><td>Hasta $2.000.000</td><td>2,19%</td><td>2,69%</td></tr>
+        <tr id="r-e2"><td>$2M – $4M</td><td>1,99%</td><td>2,59%</td></tr>
+        <tr id="r-e3"><td>$4M – $8M</td><td>1,79%</td><td>2,49%</td></tr>
+        <tr id="r-e4"><td>$8M – $25M</td><td>1,45%</td><td>2,25%</td></tr>
+        <tr id="r-e5"><td>Más de $25M</td><td>1,19%</td><td>1,99%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;color:var(--prod);margin-bottom:.75rem">Mercado Pro</p>
+    <table class="rt">
+      <thead><tr><th>Ventas c/tarjeta</th><th>Déb./Prep.</th><th>Cré./Intl</th></tr></thead>
+      <tbody>
+        <tr id="r-p1"><td>Hasta $5.000.000</td><td>$89+0,74%</td><td>$99+1,99%</td></tr>
+        <tr id="r-p2"><td>$5M – $15M</td><td>$84+0,74%</td><td>$99+1,89%</td></tr>
+        <tr id="r-p3"><td>$15M – $30M</td><td>$79+0,69%</td><td>$94+1,84%</td></tr>
+        <tr id="r-p4"><td>Más de $30M</td><td>$74+0,69%</td><td>$89+1,79%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;color:var(--tbd);margin-bottom:.75rem">Transbank</p>
+    <table class="rt">
+      <thead><tr><th>Concepto</th><th>Tarifa</th></tr></thead>
+      <tbody>
+        <tr><td>Arriendo equipo</td><td>desde 0,64 UF/mes</td></tr>
+        <tr><td>Débito / Prepago</td><td>1,75% por transacción</td></tr>
+        <tr><td>Crédito / Internacional</td><td>2,35% por transacción</td></tr>
+        <tr><td>Mínimo débito/prep.</td><td>0,002260 UF / tx</td></tr>
+        <tr><td>Mínimo crédito/intl</td><td>0,003515 UF / tx</td></tr>
+        <tr><td>Boleta electrónica</td><td style="color:var(--red)">No disponible</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px">El mínimo aplica cuando: ticket × tasa &lt; mínimo UF. Ejemplo débito: ticket &lt; $<span id="tb-min-thresh-deb">—</span> activa el mínimo.</p>
+  </div>
+</div>
+
+<div class="ig2">
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;margin-bottom:.75rem">Costos fijos mensuales IVA incluido</p>
+    <table class="rt">
+      <thead><tr><th>Concepto</th><th>Estándar</th><th>Pro</th><th>Transbank</th></tr></thead>
+      <tbody>
+        <tr><td>Suscripción / Arriendo</td><td>—</td><td>$18.445</td><td id="fix-tb-arr">—</td></tr>
+        <tr><td>Boleta electrónica</td><td id="fix-est-bol">$13.090</td><td style="color:var(--grn)">Incluida</td><td style="color:var(--red)">No disponible</td></tr>
+        <tr><td style="font-weight:600">Total fijo</td><td id="fix-est-tot">$13.090</td><td>$18.445</td><td id="fix-tb-tot">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:600;margin-bottom:.75rem">Umbral de mínimo Transbank con UF actual</p>
+    <table class="rt">
+      <thead><tr><th>Tipo</th><th>Mínimo UF</th><th>= CLP</th><th>Aplica si ticket &lt;</th></tr></thead>
+      <tbody>
+        <tr><td>Débito/Prepago</td><td>0,002260 UF</td><td id="tb-min-deb-clp">—</td><td id="tb-thresh-deb">—</td></tr>
+        <tr><td>Crédito/Intl</td><td>0,003515 UF</td><td id="tb-min-cr-clp">—</td><td id="tb-thresh-cr">—</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px">Si el ticket promedio está bajo estos umbrales, Transbank cobra el mínimo fijo en lugar del porcentaje, lo que encarece los microticketes.</p>
+  </div>
+</div>
+
+<p class="fn">Fuente: propuesta comercial Mercado Pago (Andrea Hidalgo, mayo 2026) y tarifas públicas Transbank. UF 26/05/2026: $40.526,20. Comisiones sin IVA; IVA 19% aplicado en todos los cálculos. Tramo MP según volumen total mensual con tarjeta. MP Estándar: equipo $59.900 IVA incl. pago único. Mercado Pro: equipo incluido en suscripción. Transbank: arriendo desde 0,64 UF/mes según equipo/plan contratado; pueden existir cargos adicionales según contrato. Verifica condiciones vigentes con cada proveedor.</p>
+</div>
+
+<script>
+const IVA   = 0.19;
+const TB_RD = 0.0175;   // Transbank débito rate
+const TB_RC = 0.0235;   // Transbank crédito rate
+const TB_MD = 0.002260; // Transbank débito mínimo UF/tx
+const TB_MC = 0.003515; // Transbank crédito mínimo UF/tx
+const TB_ARR= 0.64;     // Arriendo UF/mes
+
+let bPlan = 'si';
+let myChart = null;
+
+const ET = [
+  {max:2e6,  rd:.0219,rc:.0269,label:'≤ $2M',    row:'r-e1'},
+  {max:4e6,  rd:.0199,rc:.0259,label:'$2M–$4M',  row:'r-e2'},
+  {max:8e6,  rd:.0179,rc:.0249,label:'$4M–$8M',  row:'r-e3'},
+  {max:25e6, rd:.0145,rc:.0225,label:'$8M–$25M', row:'r-e4'},
+  {max:Infinity,rd:.0119,rc:.0199,label:'> $25M',row:'r-e5'},
+];
+const PT = [
+  {max:5e6,  fd:89,rd:.0074,fc:99,rc:.0199,label:'≤ $5M',    row:'r-p1'},
+  {max:15e6, fd:84,rd:.0074,fc:99,rc:.0189,label:'$5M–$15M', row:'r-p2'},
+  {max:30e6, fd:79,rd:.0069,fc:94,rc:.0184,label:'$15M–$30M',row:'r-p3'},
+  {max:Infinity,fd:74,rd:.0069,fc:89,rc:.0179,label:'> $30M',row:'r-p4'},
+];
+
+const te = v => ET.find(t => v <= t.max);
+const tp = v => PT.find(t => v <= t.max);
+const N  = n => '$' + Math.round(n).toLocaleString('es-CL');
+const P  = r => (r * 100).toFixed(2) + '%';
+const iv = n => Math.round(n * IVA);
+const wiv= n => Math.round(n * (1 + IVA));
+
+// ── Transbank per-tx commission with minimum ──────────────────────────────────
+function tbTxRate(ticket, uf, isCredit) {
+  const rate = isCredit ? TB_RC : TB_RD;
+  const minUF = isCredit ? TB_MC : TB_MD;
+  const pctAmount  = ticket * rate;
+  const minAmount  = minUF * uf;
+  return { amount: Math.max(pctAmount, minAmount), minApplied: pctAmount < minAmount };
+}
+
+// ── Auto-adjust mix sliders ───────────────────────────────────────────────────
+function syncMix(changedId) {
+  const val     = Math.min(100, Math.max(0, parseInt(document.getElementById(changedId).value)));
+  document.getElementById(changedId).value = val;
+  const others  = ['deb','cred','intl'].filter(id => id !== changedId);
+  const a       = document.getElementById(others[0]);
+  const b       = document.getElementById(others[1]);
+  const sumOth  = parseInt(a.value) + parseInt(b.value);
+  const rem     = 100 - val;
+  if (rem <= 0) { a.value = 0; b.value = 0; }
+  else if (sumOth === 0) { a.value = Math.round(rem/2); b.value = rem - Math.round(rem/2); }
+  else {
+    const nA = Math.round(rem * parseInt(a.value) / sumOth);
+    a.value  = Math.max(0, nA);
+    b.value  = Math.max(0, rem - Math.max(0, nA));
+  }
+  calc();
+}
+
+function setBoleta(p) {
+  bPlan = p;
+  document.getElementById('btn-no').className = 'tb-btn' + (p === 'no' ? ' on' : '');
+  document.getElementById('btn-si').className = 'tb-btn' + (p === 'si' ? ' on' : '');
+  calc();
+}
+
+function setRow(nId, vId, neto) {
+  document.getElementById(nId).textContent = N(neto);
+  document.getElementById(vId).textContent = '+' + N(iv(neto)) + ' IVA';
+}
+
+function highlightTier(prefix, activeRow, count) {
+  for (let i = 1; i <= count; i++) {
+    const r = document.getElementById(prefix + i);
+    if (r) r.className = (r.id === activeRow ? 'hl' : '');
+  }
+}
+
+// ── Main calc ─────────────────────────────────────────────────────────────────
+function calc() {
+  const ventas = parseFloat(document.getElementById('ventas').value) || 0;
+  const ticket = parseFloat(document.getElementById('ticket').value) || 1;
+  const uf     = parseFloat(document.getElementById('uf').value)     || 40526;
+  const tx     = Math.max(1, Math.round(ventas / ticket));
+
+  const pD = (parseFloat(document.getElementById('deb').value)  || 0) / 100;
+  const pC = (parseFloat(document.getElementById('cred').value) || 0) / 100;
+  const pI = (parseFloat(document.getElementById('intl').value) || 0) / 100;
+
+  document.getElementById('lbl-deb').textContent  = Math.round(pD*100) + '%';
+  document.getElementById('lbl-cred').textContent = Math.round(pC*100) + '%';
+  document.getElementById('lbl-intl').textContent = Math.round(pI*100) + '%';
+
+  const sum = Math.round((pD + pC + pI) * 100);
+  const mt  = document.getElementById('mix-total');
+  mt.textContent = 'Total: ' + sum + '%';
+  mt.style.color = sum !== 100 ? 'var(--red)' : 'var(--text3)';
+  document.getElementById('warn-mix').style.display = sum !== 100 ? 'block' : 'none';
+
+  // Transbank minimum thresholds
+  const tbMinDebCLP  = Math.round(TB_MD * uf);
+  const tbMinCrCLP   = Math.round(TB_MC * uf);
+  const tbThreshDeb  = Math.round(tbMinDebCLP / TB_RD);
+  const tbThreshCr   = Math.round(tbMinCrCLP  / TB_RC);
+  document.getElementById('tb-min-deb-clp').textContent  = N(tbMinDebCLP);
+  document.getElementById('tb-min-cr-clp').textContent   = N(tbMinCrCLP);
+  document.getElementById('tb-thresh-deb').textContent   = N(tbThreshDeb);
+  document.getElementById('tb-thresh-cr').textContent    = N(tbThreshCr);
+  document.getElementById('tb-min-thresh-deb').textContent = Math.round(tbThreshDeb).toLocaleString('es-CL');
+
+  const debMinApplied = ticket < tbThreshDeb;
+  const crMinApplied  = ticket < tbThreshCr;
+
+  // ── MP ESTÁNDAR ──────────────────────────────────────────────────────────────
+  const et     = te(ventas);
+  const eBolN  = bPlan === 'si' ? 11000 : 0;
+  const eDebN  = ventas * pD * et.rd;
+  const eCredN = ventas * (pC + pI) * et.rc;
+  const eSubN  = eBolN + eDebN + eCredN;
+  const eIva   = iv(eSubN);
+  const eTot   = eSubN + eIva;
+
+  document.getElementById('est-tier').textContent = 'Tramo ' + et.label;
+  if (bPlan === 'si') {
+    document.getElementById('e-bol-n').textContent = N(eBolN);
+    document.getElementById('e-bol-v').textContent = '+' + N(iv(eBolN)) + ' IVA';
+  } else {
+    document.getElementById('e-bol-n').textContent = '—';
+    document.getElementById('e-bol-v').textContent = 'no contratado';
+  }
+  setRow('e-deb-n','e-deb-v', eDebN);
+  setRow('e-cr-n', 'e-cr-v',  eCredN);
+  document.getElementById('e-sub').textContent  = N(eSubN);
+  document.getElementById('e-iva').textContent  = N(eIva);
+  document.getElementById('e-tot').textContent  = N(eTot);
+  document.getElementById('e-net').textContent  = 'Neto recibido: ' + N(ventas - eTot);
+  document.getElementById('e-tasa').textContent = ventas > 0 ? 'Tasa efectiva: ' + P(eTot/ventas) : '';
+  highlightTier('r-e', et.row, 5);
+  document.getElementById('fix-est-bol').textContent = bPlan === 'si' ? N(wiv(11000)) : '$0';
+  document.getElementById('fix-est-tot').textContent = bPlan === 'si' ? N(wiv(11000)) : '$0';
+
+  // ── MERCADO PRO ───────────────────────────────────────────────────────────────
+  const pt     = tp(ventas);
+  const txD    = Math.round(tx * pD);
+  const txC    = Math.round(tx * pC);
+  const txI    = Math.round(tx * pI);
+  const pSusN  = Math.round(18445 / 1.19);
+  const pDebN  = txD * pt.fd + ventas * pD * pt.rd;
+  const pCredN = txC * pt.fc + ventas * pC * pt.rc;
+  const pIntlN = txI * pt.fc + ventas * pI * pt.rc;
+  const pSubN  = pSusN + pDebN + pCredN + pIntlN;
+  const pIva   = iv(pSubN);
+  const pTot   = pSubN + pIva;
+
+  document.getElementById('pro-tier').textContent = 'Tramo ' + pt.label;
+  setRow('p-deb-n','p-deb-v', pDebN);
+  setRow('p-cr-n', 'p-cr-v',  pCredN + pIntlN);
+  document.getElementById('p-sub').textContent  = N(pSubN);
+  document.getElementById('p-iva').textContent  = N(pIva);
+  document.getElementById('p-tot').textContent  = N(pTot);
+  document.getElementById('p-net').textContent  = 'Neto recibido: ' + N(ventas - pTot);
+  document.getElementById('p-tasa').textContent = ventas > 0 ? 'Tasa efectiva: ' + P(pTot/ventas) : '';
+  highlightTier('r-p', pt.row, 4);
+
+  // ── TRANSBANK ─────────────────────────────────────────────────────────────────
+  const tbArrN   = TB_ARR * uf;
+  const tbRateDeb = tbTxRate(ticket, uf, false);
+  const tbRateCr  = tbTxRate(ticket, uf, true);
+  const txDeb    = Math.round(tx * pD);
+  const txCred   = Math.round(tx * (pC + pI));
+  const tbDebN   = txDeb  * tbRateDeb.amount;
+  const tbCrN    = txCred * tbRateCr.amount;
+  const tbSubN   = tbArrN + tbDebN + tbCrN;
+  const tbIva    = iv(tbSubN);
+  const tbTot    = tbSubN + tbIva;
+
+  setRow('tb-arr-n','tb-arr-v', tbArrN);
+  setRow('tb-deb-n','tb-deb-v', tbDebN);
+  setRow('tb-cr-n', 'tb-cr-v',  tbCrN);
+  document.getElementById('tb-sub').textContent  = N(tbSubN);
+  document.getElementById('tb-iva').textContent  = N(tbIva);
+  document.getElementById('tb-tot').textContent  = N(tbTot);
+  document.getElementById('tb-net').textContent  = 'Neto recibido: ' + N(ventas - tbTot);
+  document.getElementById('tb-tasa').textContent = ventas > 0 ? 'Tasa efectiva: ' + P(tbTot/ventas) : '';
+
+  // Minimum badges
+  const debTag = document.getElementById('tb-deb-mode');
+  const crTag  = document.getElementById('tb-cr-mode');
+  debTag.style.display = tbRateDeb.minApplied ? 'inline' : 'none';
+  crTag.style.display  = tbRateCr.minApplied  ? 'inline' : 'none';
+
+  const minNote = document.getElementById('tb-min-note');
+  if (tbRateDeb.minApplied || tbRateCr.minApplied) {
+    minNote.style.display = 'table-cell';
+    const parts = [];
+    if (tbRateDeb.minApplied) parts.push('débito: cobra ' + N(tbMinDebCLP) + '/tx en vez de ' + P(TB_RD));
+    if (tbRateCr.minApplied)  parts.push('crédito: cobra ' + N(tbMinCrCLP) + '/tx en vez de ' + P(TB_RC));
+    minNote.textContent = '⚡ Mínimo aplicado — ' + parts.join(' · ');
+    document.getElementById('warn-min').style.display = 'block';
+  } else {
+    minNote.style.display = 'none';
+    document.getElementById('warn-min').style.display = 'none';
+  }
+
+  // Fixed table
+  document.getElementById('fix-tb-arr').textContent = N(wiv(tbArrN));
+  document.getElementById('fix-tb-tot').textContent = N(wiv(tbArrN));
+
+  // ── RANKING ───────────────────────────────────────────────────────────────────
+  const plans = [
+    { name:'MP Estándar', val:eTot, key:'est',
+      detail:'Tramo ' + et.label + ' · Tasa ' + P(et.rd) + ' déb / ' + P(et.rc) + ' cré (sin IVA)' },
+    { name:'Mercado Pro',  val:pTot, key:'pro',
+      detail:'Tramo ' + pt.label + ' · $' + pt.fd + '/tx + ' + P(pt.rd) + ' déb (sin IVA)' },
+    { name:'Transbank',    val:tbTot, key:'tb',
+      detail:'Arriendo ' + N(wiv(tbArrN)) + '/mes · ' + P(TB_RD) + ' déb / ' + P(TB_RC) + ' cré' +
+             (tbRateDeb.minApplied || tbRateCr.minApplied ? ' ⚡mínimos activos' : '') },
+  ].sort((a, b) => a.val - b.val);
+
+  const bestVal = plans[0].val;
+
+  plans.forEach((pl, i) => {
+    document.getElementById('r' + i + '-name').textContent  = pl.name;
+    document.getElementById('r' + i + '-total').textContent = N(pl.val);
+    document.getElementById('r' + i + '-detail').textContent = pl.detail;
+    const diffFromBest = pl.val - bestVal;
+    const diffEl = document.getElementById('r' + i + '-diff');
+    if (diffFromBest < 50) {
+      diffEl.className = 'rank-diff grn';
+      diffEl.textContent = '✓ Opción más económica';
+    } else {
+      diffEl.className = 'rank-diff red';
+      diffEl.textContent = '▲ ' + N(diffFromBest) + '/mes más · ' + N(diffFromBest * 12) + '/año más';
+    }
+  });
+
+  // ── WINNER BANNER ─────────────────────────────────────────────────────────────
+  document.getElementById('win-name').textContent = plans[0].name;
+  const sav = plans[1].val - plans[0].val;
+  document.getElementById('win-save').textContent  = N(sav) + '/mes';
+  document.getElementById('win-annual').textContent = N(sav * 12) + ' de ahorro proyectado al año';
+  const winDesc = {
+    'MP Estándar': 'Sin costos fijos. Solo pagas comisión sobre lo que vendes. Tramo ' + et.label + '.',
+    'Mercado Pro':  'Suscripción $18.445 IVA incl. con boleta incluida. Tramo ' + pt.label + '.',
+    'Transbank':    'Arriendo ' + N(wiv(tbArrN)) + '/mes. Comisiones 1,75% déb / 2,35% cré' + (tbRateDeb.minApplied ? ' (mínimos activos)' : '') + '.',
+  };
+  document.getElementById('win-desc').textContent = winDesc[plans[0].name];
+
+  // ── CARD DIFFS ───────────────────────────────────────────────────────────────
+  function setDiff(elId, myVal) {
+    const el   = document.getElementById(elId);
+    const diff = myVal - bestVal;
+    if (diff < 50) { el.className = 'row-diff grn'; el.textContent = '✓ Opción más económica'; }
+    else { el.className = 'row-diff red'; el.textContent = '▲ ' + N(diff) + ' más caro que ' + plans[0].name; }
+  }
+  setDiff('e-diff',  eTot);
+  setDiff('p-diff',  pTot);
+  setDiff('tb-diff', tbTot);
+
+  // ── RECOMENDACIÓN ─────────────────────────────────────────────────────────────
+  buildRec(plans, eTot, pTot, tbTot, ventas, ticket, uf, et, pt, pD, pC, pI, tbRateDeb, tbRateCr, tbArrN);
+
+  updateChart(uf, ticket, pD, pC, pI);
+}
+
+function buildRec(plans, eTot, pTot, tbTot, ventas, ticket, uf, et, pt, pD, pC, pI, tbRateDeb, tbRateCr, tbArrN) {
+  const winner = plans[0];
+  const second = plans[1];
+  const third  = plans[2];
+  const sav12  = (second.val - winner.val) * 12;
+
+  document.getElementById('rec-title').textContent = '✅ Te conviene ' + winner.name;
+
+  let parts = [];
+
+  if (winner.key === 'est') {
+    parts.push('Con <strong>' + N(ventas) + '</strong> de ventas mensuales, <strong>MP Estándar</strong> es la opción más barata. No tiene costo fijo mensual: pagas solo comisión (' + P(et.rd) + ' débito / ' + P(et.rc) + ' crédito + IVA, tramo ' + et.label + ').');
+    parts.push('Transbank queda <strong>' + N(tbTot - eTot) + '/mes más caro</strong>. Aunque sus tasas son competitivas (1,75% déb / 2,35% cré), el arriendo de ' + N(Math.round(TB_ARR * uf * 1.19)) + '/mes IVA incl. pesa más a este nivel de ventas.' + (tbRateDeb.minApplied ? ' Además, con ticket de ' + N(ticket) + ' Transbank aplica <strong>comisión mínima fija</strong> en débito, encareciendo cada transacción pequeña.' : ''));
+    if (pTot - eTot < 5000) parts.push('Mercado Pro está a solo <strong>' + N(pTot - eTot) + '/mes</strong> de diferencia. Si tus ventas crecen o emites muchas boletas en efectivo (incluidas en Pro), podría valer la pena.');
+  } else if (winner.key === 'pro') {
+    parts.push('Con <strong>' + N(ventas) + '</strong> de ventas mensuales (tramo ' + pt.label + '), <strong>Mercado Pro</strong> es la mejor opción. Su suscripción de $18.445/mes (IVA incl.) se compensa con comisiones significativamente menores por transacción.');
+    parts.push('Incluye boleta electrónica sin costo adicional. MP Estándar queda <strong>' + N(eTot - pTot) + '/mes más caro</strong> porque a este volumen sus comisiones porcentuales superan la suscripción Pro.');
+    parts.push('Transbank queda <strong>' + N(tbTot - pTot) + '/mes más caro</strong>. El arriendo de ' + N(Math.round(TB_ARR * uf * 1.19)) + '/mes no compensa la diferencia en tasas.' + (!tbRateDeb.minApplied ? '' : ' Además aplica mínimos por transacción en este ticket.'));
+  } else {
+    parts.push('Con <strong>' + N(ventas) + '</strong> de ventas y mix de ' + Math.round(pD*100) + '% débito / ' + Math.round((pC+pI)*100) + '% crédito, <strong>Transbank</strong> resulta la opción más económica. Sus tasas del 1,75% (débito) y 2,35% (crédito) son menores que las de Mercado Pago en este escenario, y compensan el arriendo de ' + N(Math.round(TB_ARR * uf * 1.19)) + '/mes.');
+    if (tbRateDeb.minApplied || tbRateCr.minApplied) parts.push('⚡ <strong>Atención:</strong> con ticket de ' + N(ticket) + ' Transbank aplica comisión mínima fija. Si tu ticket promedio sube, la ventaja de Transbank aumentará.');
+    parts.push('MP Estándar queda <strong>' + N(eTot - tbTot) + '/mes más caro</strong> a este nivel de ventas. Si tus ventas bajaran de ~' + N(estimateTbBreakeven(et, uf, ticket, pD, pC, pI)) + '/mes, MP Estándar volvería a convenir.');
+  }
+
+  parts.push('Diferencia anual proyectada: <strong>' + N(sav12) + '</strong> a favor de ' + winner.name + ' frente a la segunda opción (' + second.name + ').');
+
+  // Transbank boleta note
+  if (winner.key !== 'est' || bPlan === 'si') {
+    parts.push('📋 Recuerda que <strong>Transbank no incluye servicio de boleta electrónica</strong>. Si la necesitas, deberás contratar un software DTE externo (costo adicional no incluido en esta simulación).');
+  }
+
+  document.getElementById('rec-body').innerHTML = parts.map(p => '<p>' + p + '</p>').join('');
+}
+
+function estimateTbBreakeven(et, uf, ticket, pD, pC, pI) {
+  for (let v = 300000; v <= 30e6; v += 50000) {
+    const tx  = Math.max(1, Math.round(v / ticket));
+    const rD  = tbTxRate(ticket, uf, false);
+    const rC  = tbTxRate(ticket, uf, true);
+    const tbN = TB_ARR*uf + Math.round(tx*pD)*rD.amount + Math.round(tx*(pC+pI))*rC.amount;
+    const eN  = (bPlan==='si'?11000:0) + v*pD*et.rd + v*(pC+pI)*et.rc;
+    if (eN * 1.19 <= tbN * 1.19) return v;
+  }
+  return 0;
+}
+
+function tbTxRate(ticket, uf, isCredit) {
+  const rate    = isCredit ? TB_RC : TB_RD;
+  const minUF   = isCredit ? TB_MC : TB_MD;
+  const pctAmt  = ticket * rate;
+  const minAmt  = minUF * uf;
+  return { amount: Math.max(pctAmt, minAmt), minApplied: pctAmt < minAmt };
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+function updateChart(uf, ticket, pD, pC, pI) {
+  const lvls = [5e5, 1e6, 2e6, 3e6, 5e6, 8e6, 1e7, 15e6, 2e7, 3e7];
+  const labs  = ['$500K','$1M','$2M','$3M','$5M','$8M','$10M','$15M','$20M','$30M'];
+
+  function estT(v) {
+    const t = te(v);
+    const n = (bPlan==='si'?11000:0) + v*pD*t.rd + v*(pC+pI)*t.rc;
+    return Math.round(n * (1+IVA));
+  }
+  function proT(v) {
+    const t  = tp(v);
+    const tx = Math.max(1, Math.round(v/ticket));
+    const n  = Math.round(18445/1.19)
+             + Math.round(tx*pD)*t.fd + v*pD*t.rd
+             + Math.round(tx*pC)*t.fc + v*pC*t.rc
+             + Math.round(tx*pI)*t.fc + v*pI*t.rc;
+    return Math.round(n * (1+IVA));
+  }
+  function tbT(v) {
+    const tx = Math.max(1, Math.round(v/ticket));
+    const rD = tbTxRate(ticket, uf, false);
+    const rC = tbTxRate(ticket, uf, true);
+    const n  = TB_ARR*uf + Math.round(tx*pD)*rD.amount + Math.round(tx*(pC+pI))*rC.amount;
+    return Math.round(n * (1+IVA));
+  }
+
+  if (myChart) myChart.destroy();
+  const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const gc   = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tc   = dark ? '#888780' : '#9e9c95';
+
+  myChart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: labs,
+      datasets: [
+        { label:'MP Estándar', data:lvls.map(estT), borderColor:'#378ADD', borderWidth:2, pointRadius:3, pointBackgroundColor:'#378ADD', fill:false, tension:.3 },
+        { label:'Mercado Pro',  data:lvls.map(proT), borderColor:'#639922', borderWidth:2, pointRadius:3, pointBackgroundColor:'#639922', fill:false, tension:.3, borderDash:[6,3] },
+        { label:'Transbank',    data:lvls.map(tbT),  borderColor:'#6B2FD4', borderWidth:2, pointRadius:3, pointBackgroundColor:'#6B2FD4', fill:false, tension:.3, borderDash:[2,3] },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': $'+c.raw.toLocaleString('es-CL')}}
+      },
+      scales:{
+        x:{grid:{color:gc}, ticks:{color:tc, font:{size:11}}},
+        y:{grid:{color:gc}, ticks:{color:tc, font:{size:11},
+           callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1000).toFixed(0)+'K')}}
+      }
+    }
+  });
+}
+
+calc();
+</script>
+</body>
+</html>
