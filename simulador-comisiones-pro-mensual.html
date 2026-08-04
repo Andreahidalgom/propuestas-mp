@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Plan Pro – Mercado Pago</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pro-purple: #6C3DD3;
+    --pro-purple-dark: #4E2B9E;
+    --pro-purple-light: #F0EBFF;
+    --pro-gold: #F59E0B;
+    --pro-gold-light: #FFFBEB;
+    --mp-blue: #009EE3;
+    --mp-green: #00A650;
+    --neutral-50: #F8FAFC;
+    --neutral-100: #F1F5F9;
+    --neutral-200: #E2E8F0;
+    --neutral-400: #94A3B8;
+    --neutral-600: #475569;
+    --neutral-800: #1E293B;
+    --neutral-900: #0F172A;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--neutral-50);
+    color: var(--neutral-800);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 32px; }
+
+  .logo-area {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: 40px;
+    padding: 8px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .pro-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, var(--pro-purple), var(--pro-gold));
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  .pro-badge span {
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.04em;
+  }
+
+  .logo-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-600);
+    letter-spacing: 0.02em;
+  }
+
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--neutral-900);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .header h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--pro-purple), var(--pro-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--neutral-600);
+    line-height: 1.5;
+  }
+
+  /* Suscripción banner */
+  .suscripcion-banner {
+    background: linear-gradient(135deg, var(--pro-purple-light), #FFFBEB);
+    border: 1.5px solid rgba(108,61,211,0.18);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .suscripcion-banner .info { display: flex; flex-direction: column; gap: 2px; }
+  .suscripcion-banner .label { font-size: 12px; color: var(--pro-purple-dark); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .suscripcion-banner .monto { font-size: 20px; font-weight: 800; color: var(--pro-purple-dark); }
+  .suscripcion-banner .sub { font-size: 11px; color: var(--neutral-600); margin-top: 2px; }
+  .suscripcion-banner .toggle-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .suscripcion-banner .toggle-label { font-size: 11px; color: var(--neutral-600); }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px; height: 24px;
+    cursor: pointer;
+  }
+
+  .toggle-switch input { display: none; }
+
+  .toggle-track {
+    width: 44px; height: 24px;
+    background: var(--neutral-200);
+    border-radius: 99px;
+    transition: background 0.2s;
+    display: block;
+  }
+
+  .toggle-switch input:checked + .toggle-track { background: var(--pro-purple); }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+  }
+
+  .toggle-switch input:checked ~ .toggle-thumb { transform: translateX(20px); }
+
+  /* Card */
+  .card {
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+
+  /* Inputs */
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .input-group { display: flex; flex-direction: column; gap: 8px; }
+
+  .input-group label { font-size: 13px; font-weight: 500; color: var(--neutral-600); }
+
+  .input-wrapper { position: relative; }
+
+  .input-prefix {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px; font-weight: 600;
+    color: var(--neutral-400);
+    pointer-events: none;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 12px 12px 12px 26px;
+    border: 1.5px solid var(--neutral-200);
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: var(--neutral-900);
+    background: var(--neutral-50);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--pro-purple);
+    box-shadow: 0 0 0 3px rgba(108,61,211,0.12);
+    background: white;
+  }
+
+  /* Slider */
+  .slider-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .slider-header label { font-size: 13px; font-weight: 500; color: var(--neutral-600); }
+  .slider-value { font-size: 13px; font-weight: 700; color: var(--pro-purple); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 5px;
+    border-radius: 99px;
+    background: var(--neutral-200);
+    outline: none; cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--pro-purple);
+    border: 3px solid white;
+    box-shadow: 0 1px 6px rgba(108,61,211,0.4);
+    cursor: pointer; transition: transform 0.1s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  .tramo-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--pro-purple-light);
+    color: var(--pro-purple-dark);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; font-weight: 600;
+    margin-top: 14px;
+  }
+
+  .tramo-badge .dot {
+    width: 7px; height: 7px;
+    background: var(--pro-purple);
+    border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* Resultados */
+  .results-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; margin-bottom: 14px;
+  }
+
+  .result-box {
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+
+  .result-box.debito {
+    background: var(--pro-purple-light);
+    border: 1.5px solid rgba(108,61,211,0.15);
+  }
+
+  .result-box.credito {
+    background: var(--pro-gold-light);
+    border: 1.5px solid rgba(245,158,11,0.2);
+  }
+
+  .result-box .tipo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; }
+  .result-box.debito .tipo { color: var(--pro-purple-dark); }
+  .result-box.credito .tipo { color: #92400E; }
+
+  .result-box .tasa { font-size: 15px; font-weight: 700; line-height: 1.2; margin-top: 2px; }
+  .result-box.debito .tasa { color: var(--pro-purple-dark); }
+  .result-box.credito .tasa { color: #92400E; }
+
+  .result-box .comision-label { font-size: 11px; color: var(--neutral-600); font-weight: 500; margin-top: 6px; }
+  .result-box .comision-monto { font-size: 18px; font-weight: 700; color: var(--neutral-900); }
+
+  .result-box .detalle { font-size: 11px; color: var(--neutral-400); margin-top: 2px; }
+
+  /* Desglose */
+  .desglose-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--neutral-100);
+    font-size: 14px;
+  }
+
+  .desglose-row:last-child { border-bottom: none; }
+  .desglose-row .desc { color: var(--neutral-600); }
+  .desglose-row .val { font-weight: 600; color: var(--neutral-900); }
+  .desglose-row.suscripcion .desc { color: var(--pro-purple-dark); font-weight: 500; }
+  .desglose-row.suscripcion .val { color: var(--pro-purple-dark); }
+  .desglose-row.total-row .desc { font-weight: 700; color: var(--neutral-900); font-size: 15px; }
+  .desglose-row.total-row .val { font-weight: 800; color: var(--neutral-900); font-size: 18px; }
+
+  /* Tabla */
+  .tabla-tramos { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tabla-tramos thead th {
+    text-align: left; padding: 8px 10px;
+    font-weight: 600; color: var(--neutral-400);
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+  .tabla-tramos tbody tr { border-bottom: 1px solid var(--neutral-100); }
+  .tabla-tramos tbody tr:last-child { border-bottom: none; }
+  .tabla-tramos tbody tr.activo { background: var(--pro-purple-light); }
+  .tabla-tramos tbody td { padding: 10px 10px; color: var(--neutral-800); font-size: 12.5px; }
+  .tabla-tramos tbody tr.activo td { font-weight: 600; color: var(--pro-purple-dark); }
+
+  .badge-activo {
+    display: inline-block;
+    background: var(--pro-purple);
+    color: white;
+    font-size: 10px; font-weight: 700;
+    border-radius: 4px; padding: 2px 7px;
+    margin-left: 6px; vertical-align: middle;
+  }
+
+  .nota {
+    font-size: 12px; color: var(--neutral-400);
+    text-align: center; margin-top: 12px; line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .input-row { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 22px; }
+    .suscripcion-banner { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .suscripcion-banner .toggle-area { align-items: flex-start; flex-direction: row; align-items: center; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="pro-badge"><span>PRO</span></div>
+      <span class="logo-label">Mercado Pago Chile</span>
+    </div>
+    <h1>Simulador <em>Plan Pro</em></h1>
+    <p>Comisión fija por transacción más una tasa variable<br>según el tramo de ventas mensuales.</p>
+  </div>
+
+  <!-- Suscripción -->
+  <div class="suscripcion-banner">
+    <div class="info">
+      <span class="label">Suscripción mensual</span>
+      <span class="monto">$18.445</span>
+      <span class="sub">IVA incluido · se descuenta del resultado</span>
+    </div>
+    <div class="toggle-area">
+      <span class="toggle-label">Incluir en total</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggle-suscripcion" checked onchange="calcular()" />
+        <span class="toggle-track"></span>
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Inputs -->
+  <div class="card">
+    <div class="card-title">Ventas del mes</div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label>Ventas Débito ($)</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="text" id="inp-debito" placeholder="0" oninput="onInput()" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label>N° transacciones Débito</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">#</span>
+          <input type="text" id="inp-txn-debito" placeholder="0" oninput="onInput()" style="padding-left:26px;" />
+        </div>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label>Ventas Crédito ($)</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="text" id="inp-credito" placeholder="0" oninput="onInput()" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label>N° transacciones Crédito</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">#</span>
+          <input type="text" id="inp-txn-credito" placeholder="0" oninput="onInput()" style="padding-left:26px;" />
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-header">
+      <label>Total ventas del mes</label>
+      <span class="slider-value" id="slider-display">$0</span>
+    </div>
+    <input type="range" id="slider-total" min="0" max="40000000" step="100000" value="0" oninput="onSlider()" />
+
+    <div id="tramo-activo" class="tramo-badge" style="display:none;">
+      <div class="dot"></div>
+      <span id="tramo-texto">Tramo</span>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div class="card">
+    <div class="card-title">Resultado estimado</div>
+
+    <div class="results-grid">
+      <div class="result-box debito">
+        <span class="tipo">Débito</span>
+        <span class="tasa" id="res-tasa-debito">—</span>
+        <span class="comision-label">Comisión estimada</span>
+        <span class="comision-monto" id="res-monto-debito">$0</span>
+        <span class="detalle" id="res-det-debito"></span>
+      </div>
+      <div class="result-box credito">
+        <span class="tipo">Crédito</span>
+        <span class="tasa" id="res-tasa-credito">—</span>
+        <span class="comision-label">Comisión estimada</span>
+        <span class="comision-monto" id="res-monto-credito">$0</span>
+        <span class="detalle" id="res-det-credito"></span>
+      </div>
+    </div>
+
+    <!-- Desglose -->
+    <div class="desglose-row">
+      <span class="desc">Comisión débito</span>
+      <span class="val" id="dsg-debito">$0</span>
+    </div>
+    <div class="desglose-row">
+      <span class="desc">Comisión crédito</span>
+      <span class="val" id="dsg-credito">$0</span>
+    </div>
+    <div class="desglose-row suscripcion" id="row-suscripcion">
+      <span class="desc">★ Suscripción Plan Pro</span>
+      <span class="val">$18.445</span>
+    </div>
+    <div class="desglose-row total-row">
+      <span class="desc">Total costo mensual</span>
+      <span class="val" id="res-total">$0</span>
+    </div>
+  </div>
+
+  <!-- Tabla de tramos -->
+  <div class="card">
+    <div class="card-title">Tabla de tramos Plan Pro</div>
+    <table class="tabla-tramos">
+      <thead>
+        <tr>
+          <th>Ventas mensuales</th>
+          <th>Débito</th>
+          <th>Crédito</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-body"></tbody>
+    </table>
+  </div>
+
+  <p class="nota">* Comisión = (fijo × N° transacciones) + (% × monto ventas).<br>Suscripción $18.445 IVA incl. se suma al costo total si está activada.</p>
+
+</div>
+
+<script>
+  const TRAMOS = [
+    { label: "Hasta $5.000.000",            max: 5000000,   debFijo: 89, debVar: 0.74, creFijo: 99, creVar: 1.99 },
+    { label: "$5.000.001 – $15.000.000",    max: 15000000,  debFijo: 84, debVar: 0.74, creFijo: 99, creVar: 1.89 },
+    { label: "$15.000.001 – $30.000.000",   max: 30000000,  debFijo: 79, debVar: 0.69, creFijo: 94, creVar: 1.84 },
+    { label: "Sobre $30.000.001",           max: Infinity,  debFijo: 74, debVar: 0.69, creFijo: 89, creVar: 1.79 },
+  ];
+
+  const SUSCRIPCION = 18445;
+
+  function getTramo(total) {
+    return TRAMOS.find(t => total <= t.max) || TRAMOS[TRAMOS.length - 1];
+  }
+
+  function fmt(n) {
+    if (n === 0) return "$0";
+    return "$" + Math.round(n).toLocaleString("es-CL");
+  }
+
+  function parseMonto(str) {
+    const clean = (str || "").replace(/[.$\s]/g, "").replace(",", ".");
+    const n = parseFloat(clean);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function formatInput(val) {
+    const n = Math.round(val);
+    return n > 0 ? n.toLocaleString("es-CL") : "";
+  }
+
+  function renderTabla(tramoActivo) {
+    const tbody = document.getElementById("tabla-body");
+    tbody.innerHTML = TRAMOS.map(t => {
+      const activo = t === tramoActivo;
+      return `<tr class="${activo ? 'activo' : ''}">
+        <td>${t.label}${activo ? '<span class="badge-activo">Activo</span>' : ''}</td>
+        <td>$${t.debFijo} + ${t.debVar.toFixed(2)}%</td>
+        <td>$${t.creFijo} + ${t.creVar.toFixed(2)}%</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function calcular() {
+    const debito  = parseMonto(document.getElementById("inp-debito").value);
+    const credito = parseMonto(document.getElementById("inp-credito").value);
+    const txnDeb  = parseMonto(document.getElementById("inp-txn-debito").value);
+    const txnCre  = parseMonto(document.getElementById("inp-txn-credito").value);
+    const total   = debito + credito;
+    const inclSusc = document.getElementById("toggle-suscripcion").checked;
+
+    document.getElementById("slider-total").value = Math.min(total, 40000000);
+    document.getElementById("slider-display").textContent = fmt(total);
+
+    document.getElementById("row-suscripcion").style.display = inclSusc ? "" : "none";
+
+    if (total === 0 && txnDeb === 0 && txnCre === 0) {
+      document.getElementById("tramo-activo").style.display = "none";
+      ["res-tasa-debito","res-tasa-credito"].forEach(id => document.getElementById(id).textContent = "—");
+      ["res-monto-debito","res-monto-credito","dsg-debito","dsg-credito"].forEach(id => document.getElementById(id).textContent = "$0");
+      document.getElementById("res-det-debito").textContent = "";
+      document.getElementById("res-det-credito").textContent = "";
+      document.getElementById("res-total").textContent = inclSusc ? fmt(SUSCRIPCION) : "$0";
+      renderTabla(null);
+      return;
+    }
+
+    const t = getTramo(total);
+
+    const fijoDeb = t.debFijo * txnDeb;
+    const varDeb  = debito * (t.debVar / 100);
+    const comDeb  = fijoDeb + varDeb;
+
+    const fijoCre = t.creFijo * txnCre;
+    const varCre  = credito * (t.creVar / 100);
+    const comCre  = fijoCre + varCre;
+
+    const subtotal = comDeb + comCre;
+    const totalFinal = subtotal + (inclSusc ? SUSCRIPCION : 0);
+
+    document.getElementById("tramo-activo").style.display = "inline-flex";
+    document.getElementById("tramo-texto").textContent = "Tramo activo: " + t.label;
+
+    document.getElementById("res-tasa-debito").textContent  = `$${t.debFijo} + ${t.debVar.toFixed(2)}%`;
+    document.getElementById("res-tasa-credito").textContent = `$${t.creFijo} + ${t.creVar.toFixed(2)}%`;
+
+    document.getElementById("res-monto-debito").textContent  = fmt(comDeb);
+    document.getElementById("res-monto-credito").textContent = fmt(comCre);
+
+    document.getElementById("res-det-debito").textContent =
+      txnDeb > 0 ? `${fmt(fijoDeb)} fijo + ${fmt(varDeb)} variable` : `${fmt(varDeb)} variable`;
+    document.getElementById("res-det-credito").textContent =
+      txnCre > 0 ? `${fmt(fijoCre)} fijo + ${fmt(varCre)} variable` : `${fmt(varCre)} variable`;
+
+    document.getElementById("dsg-debito").textContent  = fmt(comDeb);
+    document.getElementById("dsg-credito").textContent = fmt(comCre);
+    document.getElementById("res-total").textContent   = fmt(totalFinal);
+
+    renderTabla(t);
+  }
+
+  function onInput() { calcular(); }
+
+  function onSlider() {
+    const val = parseInt(document.getElementById("slider-total").value);
+    document.getElementById("slider-display").textContent = fmt(val);
+    const d = Math.round(val * 0.6);
+    const c = val - d;
+    document.getElementById("inp-debito").value  = formatInput(d);
+    document.getElementById("inp-credito").value = formatInput(c);
+    calcular();
+  }
+
+  ["inp-debito","inp-credito"].forEach(id => {
+    document.getElementById(id).addEventListener("blur", () => {
+      const el = document.getElementById(id);
+      const n = parseMonto(el.value);
+      el.value = n > 0 ? formatInput(n) : "";
+    });
+  });
+
+  renderTabla(null);
+</script>
+</body>
+</html>
