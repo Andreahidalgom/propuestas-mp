@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Comisiones – Mercado Pago</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --mp-blue: #009EE3;
+    --mp-blue-dark: #007AB8;
+    --mp-blue-light: #E6F6FD;
+    --mp-green: #00A650;
+    --mp-green-light: #E6F7EE;
+    --mp-yellow: #FFE600;
+    --neutral-50: #F8FAFC;
+    --neutral-100: #F1F5F9;
+    --neutral-200: #E2E8F0;
+    --neutral-400: #94A3B8;
+    --neutral-600: #475569;
+    --neutral-800: #1E293B;
+    --neutral-900: #0F172A;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--neutral-50);
+    color: var(--neutral-800);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo-area {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: 40px;
+    padding: 8px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .logo-dot {
+    width: 10px; height: 10px;
+    background: var(--mp-blue);
+    border-radius: 50%;
+  }
+
+  .logo-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mp-blue-dark);
+    letter-spacing: 0.02em;
+  }
+
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--neutral-900);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--neutral-600);
+    line-height: 1.5;
+  }
+
+  /* Card */
+  .card {
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+
+  /* Inputs */
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--neutral-600);
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--neutral-400);
+    pointer-events: none;
+  }
+
+  .input-suffix {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--neutral-400);
+    pointer-events: none;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 12px 12px 12px 26px;
+    border: 1.5px solid var(--neutral-200);
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    background: var(--neutral-50);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: var(--mp-blue);
+    box-shadow: 0 0 0 3px rgba(0,158,227,0.12);
+    background: white;
+  }
+
+  input.has-suffix {
+    padding-right: 40px;
+  }
+
+  /* Slider */
+  .slider-section {
+    margin-bottom: 8px;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .slider-header label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--neutral-600);
+  }
+
+  .slider-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mp-blue);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 99px;
+    background: var(--neutral-200);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--mp-blue);
+    border: 3px solid white;
+    box-shadow: 0 1px 6px rgba(0,158,227,0.4);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  /* Tramo activo */
+  .tramo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--mp-blue-light);
+    color: var(--mp-blue-dark);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 14px;
+  }
+
+  .tramo-badge .dot {
+    width: 7px; height: 7px;
+    background: var(--mp-blue);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Resultados */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .result-box {
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-box.debito {
+    background: var(--mp-blue-light);
+    border: 1.5px solid rgba(0,158,227,0.18);
+  }
+
+  .result-box.credito {
+    background: #FFF3E0;
+    border: 1.5px solid rgba(255,152,0,0.2);
+  }
+
+  .result-box .tipo {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+  }
+
+  .result-box.debito .tipo { color: var(--mp-blue-dark); }
+  .result-box.credito .tipo { color: #E65100; }
+
+  .result-box .tasa {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .result-box.debito .tasa { color: var(--mp-blue-dark); }
+  .result-box.credito .tasa { color: #E65100; }
+
+  .result-box .comision-label {
+    font-size: 11px;
+    color: var(--neutral-600);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  .result-box .comision-monto {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--neutral-900);
+  }
+
+  /* Total */
+  .total-box {
+    background: var(--neutral-900);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .total-box .label {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .total-box .monto {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* Tabla de tramos */
+  .tabla-tramos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .tabla-tramos thead th {
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: var(--neutral-400);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+
+  .tabla-tramos tbody tr {
+    border-bottom: 1px solid var(--neutral-100);
+    transition: background 0.1s;
+  }
+
+  .tabla-tramos tbody tr:last-child { border-bottom: none; }
+
+  .tabla-tramos tbody tr.activo {
+    background: var(--mp-blue-light);
+    border-radius: var(--radius-sm);
+  }
+
+  .tabla-tramos tbody td {
+    padding: 10px 12px;
+    color: var(--neutral-800);
+  }
+
+  .tabla-tramos tbody tr.activo td {
+    font-weight: 600;
+    color: var(--mp-blue-dark);
+  }
+
+  .badge-activo {
+    display: inline-block;
+    background: var(--mp-blue);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+  }
+
+  /* Nota aclaratoria */
+  .nota {
+    font-size: 12px;
+    color: var(--neutral-400);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .input-row { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-dot"></div>
+      <span class="logo-label">Mercado Pago Chile</span>
+    </div>
+    <h1>Simulador de Comisiones</h1>
+    <p>Ingresa las ventas mensuales en débito y crédito<br>para calcular automáticamente tus comisiones.</p>
+  </div>
+
+  <!-- Inputs -->
+  <div class="card">
+    <div class="card-title">Ventas del mes</div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label>Ventas Débito ($)</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="text" id="inp-debito" placeholder="0" oninput="onInput()" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Ventas Crédito ($)</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="text" id="inp-credito" placeholder="0" oninput="onInput()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-section">
+      <div class="slider-header">
+        <label>Total ventas del mes</label>
+        <span class="slider-value" id="slider-display">$0</span>
+      </div>
+      <input type="range" id="slider-total" min="0" max="30000000" step="100000" value="0"
+        oninput="onSlider()" />
+    </div>
+
+    <div id="tramo-activo" class="tramo-badge" style="display:none;">
+      <div class="dot"></div>
+      <span id="tramo-texto">Tramo</span>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div class="card">
+    <div class="card-title">Resultado estimado</div>
+
+    <div class="results-grid">
+      <div class="result-box debito">
+        <span class="tipo">Débito</span>
+        <span class="tasa" id="res-tasa-debito">—</span>
+        <span class="comision-label">Comisión estimada</span>
+        <span class="comision-monto" id="res-monto-debito">$0</span>
+      </div>
+      <div class="result-box credito">
+        <span class="tipo">Crédito</span>
+        <span class="tasa" id="res-tasa-credito">—</span>
+        <span class="comision-label">Comisión estimada</span>
+        <span class="comision-monto" id="res-monto-credito">$0</span>
+      </div>
+    </div>
+
+    <div class="total-box">
+      <span class="label">Total comisión mensual</span>
+      <span class="monto" id="res-total">$0</span>
+    </div>
+  </div>
+
+  <!-- Tabla de tramos -->
+  <div class="card">
+    <div class="card-title">Tabla de tramos</div>
+    <table class="tabla-tramos">
+      <thead>
+        <tr>
+          <th>Ventas mensuales</th>
+          <th>Débito</th>
+          <th>Crédito</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-body"></tbody>
+    </table>
+  </div>
+
+  <p class="nota">* Las comisiones se aplican sobre el total de ventas en el tramo correspondiente.<br>Simulación referencial. No incluye IVA adicional sobre comisiones.</p>
+
+</div>
+
+<script>
+  const TRAMOS = [
+    { label: "Hasta $2.000.000",          max: 2000000,  debito: 2.19, credito: 2.69 },
+    { label: "$2.000.001 – $4.000.000",   max: 4000000,  debito: 1.99, credito: 2.59 },
+    { label: "$4.000.001 – $8.000.000",   max: 8000000,  debito: 1.79, credito: 2.49 },
+    { label: "$8.000.001 – $25.000.000",  max: 25000000, debito: 1.45, credito: 2.25 },
+    { label: "Sobre $25.000.001",         max: Infinity, debito: 1.19, credito: 1.99 },
+  ];
+
+  function getTramo(total) {
+    return TRAMOS.find(t => total <= t.max) || TRAMOS[TRAMOS.length - 1];
+  }
+
+  function fmt(n) {
+    if (n === 0) return "$0";
+    return "$" + Math.round(n).toLocaleString("es-CL");
+  }
+
+  function parseMonto(str) {
+    const clean = str.replace(/[.$\s]/g, "").replace(",", ".");
+    const n = parseFloat(clean);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function formatInput(val) {
+    const n = Math.round(val);
+    if (n === 0) return "";
+    return n.toLocaleString("es-CL");
+  }
+
+  // Render tabla
+  function renderTabla(tramoActivo) {
+    const tbody = document.getElementById("tabla-body");
+    tbody.innerHTML = TRAMOS.map((t, i) => {
+      const activo = t === tramoActivo;
+      return `<tr class="${activo ? 'activo' : ''}">
+        <td>${t.label}${activo ? '<span class="badge-activo">Activo</span>' : ''}</td>
+        <td>${t.debito.toFixed(2)}%</td>
+        <td>${t.credito.toFixed(2)}%</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function calcular() {
+    const debito  = parseMonto(document.getElementById("inp-debito").value);
+    const credito = parseMonto(document.getElementById("inp-credito").value);
+    const total   = debito + credito;
+
+    // Slider sync
+    const sliderMax = 30000000;
+    document.getElementById("slider-total").value = Math.min(total, sliderMax);
+    document.getElementById("slider-display").textContent = fmt(total);
+
+    if (total === 0) {
+      document.getElementById("tramo-activo").style.display = "none";
+      document.getElementById("res-tasa-debito").textContent  = "—";
+      document.getElementById("res-tasa-credito").textContent = "—";
+      document.getElementById("res-monto-debito").textContent  = "$0";
+      document.getElementById("res-monto-credito").textContent = "$0";
+      document.getElementById("res-total").textContent = "$0";
+      renderTabla(null);
+      return;
+    }
+
+    const t = getTramo(total);
+
+    const comDebito  = debito  * (t.debito  / 100);
+    const comCredito = credito * (t.credito / 100);
+    const comTotal   = comDebito + comCredito;
+
+    document.getElementById("tramo-activo").style.display = "inline-flex";
+    document.getElementById("tramo-texto").textContent = "Tramo activo: " + t.label;
+
+    document.getElementById("res-tasa-debito").textContent  = t.debito.toFixed(2) + "%";
+    document.getElementById("res-tasa-credito").textContent = t.credito.toFixed(2) + "%";
+    document.getElementById("res-monto-debito").textContent  = fmt(comDebito);
+    document.getElementById("res-monto-credito").textContent = fmt(comCredito);
+    document.getElementById("res-total").textContent = fmt(comTotal);
+
+    renderTabla(t);
+  }
+
+  function onInput() {
+    calcular();
+  }
+
+  function onSlider() {
+    const val = parseInt(document.getElementById("slider-total").value);
+    document.getElementById("slider-display").textContent = fmt(val);
+    // Distribuir 60/40 entre débito y crédito como ejemplo
+    const d = Math.round(val * 0.6);
+    const c = val - d;
+    document.getElementById("inp-debito").value  = d > 0 ? formatInput(d) : "";
+    document.getElementById("inp-credito").value = c > 0 ? formatInput(c) : "";
+    calcular();
+  }
+
+  // Formatear al escribir
+  ["inp-debito", "inp-credito"].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener("blur", () => {
+      const n = parseMonto(el.value);
+      el.value = n > 0 ? formatInput(n) : "";
+    });
+  });
+
+  renderTabla(null);
+</script>
+</body>
+</html>
