@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mis comercios</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;padding:1.5rem 1rem;min-height:100vh}
+.wrap{max-width:700px;margin:0 auto}
+h1{font-size:20px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.navrow{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.navlink{font-size:13px;font-weight:500;color:#534AB7;text-decoration:none;background:#f0eeff;padding:7px 12px;border-radius:8px;display:flex;align-items:center;gap:5px;border:1px solid #AFA9EC}
+.navlink:hover{background:#e4e0ff}
+.sec{background:#fff;border:1px solid #e8e5e0;border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem}
+.fld{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+label{font-size:13px;color:#555;white-space:nowrap}
+input[type=text]{flex:1;min-width:160px;padding:9px 12px;font-size:14px;background:#f9f8f6;border:1px solid #e0ddd8;border-radius:8px;color:#1a1a1a;font-family:inherit;outline:none}
+input:focus{border-color:#534AB7;box-shadow:0 0 0 3px rgba(83,74,183,.1)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{padding:6px 13px;font-size:12px;border:1px solid #e0ddd8;border-radius:20px;cursor:pointer;background:#f9f8f6;color:#555;user-select:none}
+.chip.on{background:#534AB7;border-color:#534AB7;color:#fff;font-weight:500}
+.count{font-size:12px;color:#888;margin-bottom:.75rem}
+.card{background:#fff;border:1px solid #e8e5e0;border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;cursor:pointer}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cname{font-size:15px;font-weight:600;color:#1a1a1a}
+.crut{font-size:12px;color:#999;margin-top:2px}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.b-Calificación{background:#EEEDFE;color:#3C3489}
+.b-Negociación{background:#FEF3ED;color:#7A3010}
+.b-Aceptado{background:#E8F7F1;color:#064D35}
+.b-Rechazado{background:#FDEDED;color:#7A1010}
+.b-Liberado{background:#f0f0f0;color:#777}
+.cmeta{font-size:12px;color:#888;margin-top:8px}
+.chist{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #eee}
+.card.open .chist{display:block}
+.efld{margin-bottom:9px}
+.efld:last-child{margin-bottom:0}
+.efld label{display:block;font-size:12px;color:#555;margin-bottom:4px}
+.efld input,.efld textarea{width:100%;padding:8px 10px;font-size:13px;border:1px solid #e0ddd8;border-radius:8px;background:#f9f8f6;font-family:inherit;outline:none}
+.efld textarea{resize:vertical;min-height:50px}
+.echips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.echip{padding:5px 12px;font-size:12px;border:1px solid #e0ddd8;border-radius:20px;cursor:pointer;background:#f9f8f6;color:#555;user-select:none}
+.echip.on{background:#534AB7;border-color:#534AB7;color:#fff;font-weight:500}
+.savebtn{margin-top:10px;width:100%;padding:9px;font-size:13px;font-weight:600;background:#534AB7;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
+.savebtn:hover{background:#3C3489}
+.savebtn:disabled{background:#aaa;cursor:not-allowed}
+.savestatus{font-size:12px;margin-top:6px;min-height:14px;color:#777}
+.savestatus.ok{color:#1D9E75}
+.savestatus.err{color:#D85A30}
+.histbox{margin-top:12px;padding-top:10px;border-top:1px solid #eee;font-size:12px;color:#666;white-space:pre-line;line-height:1.6}
+.empty{text-align:center;padding:3rem 1rem;color:#999;font-size:14px}
+.status{text-align:center;padding:2rem;color:#777;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📋 Mis comercios</h1>
+  <div class="navrow">
+    <a class="navlink" href="registro-visita.html">📝 Registrar visita</a>
+    <a class="navlink" href="mapa-visitas.html">🗺️ Ver mapa</a>
+  </div>
+
+  <div class="sec">
+    <div class="fld">
+      <label>Tu nombre:</label>
+      <input type="text" id="nombre" placeholder="Ej: Andrea Hidalgo" list="nombresList"/>
+      <datalist id="nombresList"></datalist>
+    </div>
+    <div class="chips" id="fEtapa">
+      <div class="chip on" data-v="">Todas</div>
+      <div class="chip" data-v="Calificación">Calificación</div>
+      <div class="chip" data-v="Negociación">Negociación</div>
+      <div class="chip" data-v="Aceptado">Aceptado</div>
+      <div class="chip" data-v="Rechazado">Rechazado</div>
+      <div class="chip" data-v="Liberado">Liberado</div>
+    </div>
+  </div>
+
+  <div class="count" id="cont"></div>
+  <div id="lista"></div>
+  <div class="status" id="status">Escribe tu nombre arriba para ver tus comercios.</div>
+</div>
+
+<script>
+// ⚠️ Debe ser la misma URL que usas en registro-visita.html y mapa-visitas.html
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNH-UzkC5s-wOoTdO1mz5uNlwG02Q_ul3__yS_w1-pcAP6zhPK4Rbmvo0iFCQ3QbvboA/exec";
+
+let todosLosComercios = [];
+let cargado = false;
+
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+async function llamarApi(payload) {
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return await resp.json();
+  } catch (err) {
+    return { ok: false, mensaje: 'Error de conexión con el servidor.' };
+  }
+}
+
+async function cargar() {
+  document.getElementById('status').textContent = 'Cargando...';
+  document.getElementById('status').style.display = 'block';
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=listarComercios');
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.mensaje || 'Error al cargar');
+    todosLosComercios = data.comercios || [];
+    cargado = true;
+
+    const nombres = [...new Set(todosLosComercios.map(c => c.usuario).filter(Boolean))].sort();
+    const dl = document.getElementById('nombresList');
+    dl.innerHTML = '';
+    nombres.forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n;
+      dl.appendChild(opt);
+    });
+
+    pintar();
+  } catch (err) {
+    document.getElementById('status').textContent = 'No se pudo cargar: ' + err.message;
+  }
+}
+
+function fmtFecha(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('es-CL');
+}
+
+function pintar() {
+  const nombre = document.getElementById('nombre').value.trim().toLowerCase();
+  const etapaSel = document.querySelector('#fEtapa .chip.on').dataset.v;
+  const lista = document.getElementById('lista');
+  const status = document.getElementById('status');
+  lista.innerHTML = '';
+
+  if (!nombre) {
+    status.textContent = 'Escribe tu nombre arriba para ver tus comercios.';
+    status.style.display = 'block';
+    document.getElementById('cont').textContent = '';
+    return;
+  }
+
+  let filtrados = todosLosComercios.filter(c => c.usuario.trim().toLowerCase() === nombre);
+  if (etapaSel) filtrados = filtrados.filter(c => c.etapa === etapaSel);
+  filtrados.sort((a, b) => new Date(b.fechaGestion || 0) - new Date(a.fechaGestion || 0));
+
+  document.getElementById('cont').textContent = filtrados.length + (filtrados.length === 1 ? ' comercio' : ' comercios');
+
+  if (filtrados.length === 0) {
+    status.textContent = cargado ? 'No se encontraron comercios con ese nombre/filtro.' : 'Cargando...';
+    status.style.display = 'block';
+    return;
+  }
+  status.style.display = 'none';
+
+  const ETAPAS = ['Calificación', 'Negociación', 'Aceptado', 'Rechazado'];
+
+  filtrados.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const badgeClass = 'b-' + (c.etapa || 'Calificación');
+    const echipsHtml = ETAPAS.map(e => `<div class="echip${e === c.etapa ? ' on' : ''}" data-v="${e}">${e}</div>`).join('');
+    card.innerHTML = `
+      <div class="crow">
+        <div>
+          <div class="cname">${esc(c.comercio) || 'Sin nombre'}</div>
+          <div class="crut">${c.rut ? 'RUT ' + esc(c.rut) : 'Sin RUT'}${c.contacto ? ' · ' + esc(c.contacto) : ''}</div>
+        </div>
+        <span class="badge ${badgeClass}">${esc(c.etapa) || '—'}</span>
+      </div>
+      <div class="cmeta">Última gestión: ${fmtFecha(c.fechaGestion) || '—'}${c.fechaAsignacion ? ' · Asignado: ' + fmtFecha(c.fechaAsignacion) : ''}</div>
+      ${(c.telefono || c.direccion) ? `<div class="cmeta">${esc(c.telefono)}${c.telefono && c.direccion ? ' · ' : ''}${esc(c.direccion)}</div>` : ''}
+      <div class="chist">
+        <div class="efld"><label>RUT <span style="color:#aaa;font-weight:400">(obligatorio para pasar a Negociación)</span></label><input type="text" class="eRut" value="${esc(c.rut)}" placeholder="Ej: 12.345.678-9"/></div>
+        <div class="efld"><label>Nombre del comercio</label><input type="text" class="eComercio" value="${esc(c.comercio)}"/></div>
+        <div class="efld"><label>Nombre de contacto</label><input type="text" class="eContacto" value="${esc(c.contacto)}"/></div>
+        <div class="efld"><label>Teléfono</label><input type="text" class="eTelefono" value="${esc(c.telefono)}"/></div>
+        <div class="efld"><label>Correo</label><input type="text" class="eCorreo" value="${esc(c.correo)}"/></div>
+        <div class="efld"><label>Dirección</label><input type="text" class="eDireccion" value="${esc(c.direccion)}"/></div>
+        <div class="efld"><label>Ventas mensuales estimadas</label><input type="text" class="eVentas" value="${esc(c.ventas)}"/></div>
+        <div class="efld"><label>Máquina(s) de cobro</label><input type="text" class="eMaquinas" value="${esc(c.maquinas)}"/></div>
+        <div class="efld"><label>Objeción</label><input type="text" class="eObjecion" value="${esc(c.objecion)}"/></div>
+        <div class="efld"><label>Etapa</label><div class="echips eEtapa">${echipsHtml}</div></div>
+        <div class="efld"><label>Nota de esta gestión (opcional)</label><textarea class="eNota" placeholder="Ej: Llamé y quedamos en reunión la próxima semana"></textarea></div>
+        <button class="savebtn">💾 Guardar cambios</button>
+        <div class="savestatus"></div>
+        <div class="histbox">${esc(c.historial).trim() || 'Sin historial registrado.'}</div>
+      </div>
+    `;
+
+    card.querySelector('.crow').addEventListener('click', () => card.classList.toggle('open'));
+
+    card.querySelectorAll('.eEtapa .echip').forEach(chip => {
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        card.querySelectorAll('.eEtapa .echip').forEach(x => x.classList.remove('on'));
+        chip.classList.add('on');
+      });
+    });
+
+    card.querySelector('.savebtn').addEventListener('click', async e => {
+      e.stopPropagation();
+      const btn = card.querySelector('.savebtn');
+      const status = card.querySelector('.savestatus');
+      const etapaChip = card.querySelector('.eEtapa .echip.on');
+      const nuevoRutVal = card.querySelector('.eRut').value.trim();
+      if (etapaChip && etapaChip.dataset.v === 'Negociación' && !nuevoRutVal) {
+        status.className = 'savestatus err';
+        status.textContent = 'El RUT es obligatorio para pasar a Negociación.';
+        return;
+      }
+      const payload = {
+        action: 'actualizarComercio',
+        rut: c.rut,
+        nuevoRut: nuevoRutVal,
+        fechaAsignacion: c.fechaAsignacion,
+        comercio: card.querySelector('.eComercio').value.trim(),
+        contacto: card.querySelector('.eContacto').value.trim(),
+        telefono: card.querySelector('.eTelefono').value.trim(),
+        correo: card.querySelector('.eCorreo').value.trim(),
+        direccion: card.querySelector('.eDireccion').value.trim(),
+        ventas: card.querySelector('.eVentas').value.trim(),
+        maquinas: card.querySelector('.eMaquinas').value.trim(),
+        objecion: card.querySelector('.eObjecion').value.trim(),
+        etapa: etapaChip ? etapaChip.dataset.v : c.etapa,
+        usuario: document.getElementById('nombre').value.trim(),
+        nota: card.querySelector('.eNota').value.trim()
+      };
+      btn.disabled = true;
+      status.className = 'savestatus';
+      status.textContent = 'Guardando...';
+      const res = await llamarApi(payload);
+      if (res.ok) {
+        status.className = 'savestatus ok';
+        status.textContent = '✓ Guardado';
+        await cargar();
+      } else {
+        btn.disabled = false;
+        status.className = 'savestatus err';
+        status.textContent = '🔒 ' + (res.mensaje || 'No se pudo guardar.');
+      }
+    });
+
+    lista.appendChild(card);
+  });
+}
+
+document.getElementById('nombre').addEventListener('input', pintar);
+document.querySelectorAll('#fEtapa .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#fEtapa .chip').forEach(c => c.classList.remove('on'));
+    chip.classList.add('on');
+    pintar();
+  });
+});
+
+cargar();
+</script>
+</body>
+</html>
