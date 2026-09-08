@@ -252,6 +252,8 @@ let cur = 0;
 let enviando = false;
 let lastComuna = '';
 let lastCalle = '';
+let lastLat = '';
+let lastLng = '';
 let rutBloqueado = false;
 
 function gt(n) {
@@ -306,7 +308,7 @@ function getGeo() {
           const comuna = (addr.suburb || addr.city_district || addr.town || addr.city || addr.municipality || '');
           const resultado = (calle + numero + (comuna ? ', ' + comuna : '')).trim();
           document.getElementById('dir').value = resultado;
-          lastCalle = calle; lastComuna = comuna;
+          lastCalle = calle; lastComuna = comuna; lastLat = lat; lastLng = lng;
           btn.disabled = false;
           btn.textContent = '📍 Ubicación';
           status.className = 'geo-status ok';
@@ -466,7 +468,7 @@ async function reg() {
     await llamarApi({ action: 'actualizarEtapa', rut, comercio: c, contacto: co, etapa, usuario: ejec });
   }
 
-  llamarApi({ action: 'registrarRuta', usuario: ejec, comercio: c, calle: lastCalle, comuna: lastComuna });
+  llamarApi({ action: 'registrarRuta', usuario: ejec, comercio: c, calle: lastCalle, comuna: lastComuna, lat: lastLat, lng: lastLng });
 
   regbtn.textContent = 'Guardando...';
 
@@ -536,7 +538,7 @@ function rst() {
   document.getElementById('reunionStatus').textContent = '';
   document.getElementById('regbtn').disabled = false;
   document.getElementById('regbtn').textContent = '✓ Registrar visita';
-  lastComuna = ''; lastCalle = ''; rutBloqueado = false;
+  lastComuna = ''; lastCalle = ''; lastLat = ''; lastLng = ''; rutBloqueado = false;
   gt(0);
 }
 </script>
